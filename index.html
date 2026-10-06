@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flashcard · v0.8.1</title>
+  <title>Flashcard · v0.9</title>
   <style>
     * {
       box-sizing: border-box;
@@ -142,8 +142,89 @@
     }
 
     /* ============================================
-       KATEGORI FILTER — v0.8.1 FIX
+       AUTO-LANJUT CARD DI PUSTAKA (v0.9)
        ============================================ */
+    .setting-card {
+      background: linear-gradient(135deg, #f5f8ff, #eef3ff);
+      border: 1px solid #dde5f5;
+      border-radius: 24px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+      transition: 0.2s;
+    }
+
+    .setting-card.active {
+      background: linear-gradient(135deg, #e6f0ff, #d9e6ff);
+      border-color: #b0bedb;
+    }
+
+    .setting-info {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .setting-title {
+      font-weight: 700;
+      color: #1f2a4a;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .setting-desc {
+      color: #556184;
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    /* Toggle switch */
+    .toggle-switch {
+      position: relative;
+      width: 60px;
+      height: 34px;
+      background: #c5cfe0;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: background 0.25s ease;
+      flex-shrink: 0;
+      border: none;
+      padding: 0;
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 28px;
+      height: 28px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .toggle-switch.active {
+      background: #2d3a5e;
+    }
+
+    .toggle-switch.active::after {
+      transform: translateX(26px);
+    }
+
+    .toggle-switch:active::after {
+      width: 32px;
+    }
+
+    /* Kategori filter */
     .category-filters {
       display: flex;
       gap: 8px;
@@ -818,7 +899,7 @@
       border-color: transparent;
     }
 
-    /* FLIP CARD v0.8 */
+    /* FLIP CARD */
     .flashcard-scene {
       width: 100%;
       perspective: 1600px;
@@ -937,6 +1018,12 @@
     .expand-btn:hover { background: #e6ecfc; }
     .expand-btn:active { transform: scale(0.94); }
 
+    .expand-btn.active {
+      background: #2d3a5e;
+      color: white;
+      border-color: #2d3a5e;
+    }
+
     /* MODAL BACA PENUH */
     .reader-overlay {
       position: fixed;
@@ -1046,6 +1133,20 @@
       margin-top: 14px;
       font-size: 0.85rem;
       color: #6f7d9e;
+      min-height: 1.2em;
+    }
+
+    .small-note .auto-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #fff3cd;
+      color: #856404;
+      padding: 2px 10px;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-left: 6px;
     }
 
     .tts-warning {
@@ -1232,6 +1333,10 @@
       .reader-header { padding: 14px 18px; }
       .reader-footer { padding: 14px 18px; }
       .category-chip { padding: 7px 14px; font-size: 0.85rem; }
+      .setting-card { padding: 14px 16px; }
+      .toggle-switch { width: 52px; height: 30px; }
+      .toggle-switch::after { width: 24px; height: 24px; }
+      .toggle-switch.active::after { transform: translateX(22px); }
     }
   </style>
 </head>
@@ -1248,6 +1353,16 @@
   <div id="page-pustaka" class="page active">
     <h2>📚 Pustaka Flashcard</h2>
     <div class="subhead">Koleksi projek yang kamu buat</div>
+
+    <!-- Setting Auto-Lanjut -->
+    <div class="setting-card" id="autoNextCard">
+      <div class="setting-info">
+        <div class="setting-title">⚡ Auto-Lanjut setelah 2x flip</div>
+        <div class="setting-desc">Setiap kartu yang di-flip 2 kali akan otomatis lanjut ke kartu berikutnya. Kalau sudah di akhir, kembali ke kartu pertama.</div>
+      </div>
+      <button class="toggle-switch" id="autoNextToggle" type="button" aria-label="Aktifkan auto-lanjut"></button>
+    </div>
+
     <div class="page-content">
       <div id="projectListContainer" class="project-grid"></div>
     </div>
@@ -1317,7 +1432,7 @@
     </div>
   </div>
 
-  <div class="footer-note">Flashcard v0.8.1 · auto-size · reader mode</div>
+  <div class="footer-note">Flashcard v0.9 · auto-lanjut · wrap-around</div>
 </div>
 
 <!-- Modal Editor Kartu Penuh -->
@@ -1457,7 +1572,9 @@
   // ======================================================================
   const STORAGE_KEY = 'flashcard_projects_v1';
   const TTS_SETTINGS_KEY = 'flashcard_tts_settings_v1';
+  const AUTO_NEXT_KEY = 'flashcard_auto_next_v1';
   const DATA_BASE = 'data/';
+  const AUTO_NEXT_DELAY = 500; // ms
 
   function loadProjects() {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -1500,7 +1617,6 @@
     el.style.height = el.scrollHeight + 'px';
   }
 
-  // AUTO-SIZE FONT
   function computeFontSize(text) {
     const len = (text || '').length;
     if (len <= 20) return 2.0;
@@ -1520,6 +1636,19 @@
     if (len <= 350) return 340;
     return 380;
   }
+
+  // ======================================================================
+  // AUTO-NEXT SETTING
+  // ======================================================================
+  function loadAutoNext() {
+    return localStorage.getItem(AUTO_NEXT_KEY) === 'true';
+  }
+
+  function saveAutoNext(value) {
+    localStorage.setItem(AUTO_NEXT_KEY, value ? 'true' : 'false');
+  }
+
+  let autoNextEnabled = loadAutoNext();
 
   // ======================================================================
   // TTS
@@ -1547,11 +1676,7 @@
   let activeCategory = 'Semua';
   let editingProjectId = null;
 
-  let cardEditorState = {
-    isOpen: false,
-    cardElement: null,
-  };
-
+  let cardEditorState = { isOpen: false, cardElement: null };
   let readerState = { isOpen: false };
 
   let activeGame = {
@@ -1563,6 +1688,8 @@
     currentIndex: 0,
     flipped: false,
     isAnimating: false,
+    flipCount: 0,        // counter flip sejak kartu muncul (v0.9)
+    autoNextTimer: null, // timer untuk auto-lanjut (v0.9)
   };
 
   // ======================================================================
@@ -1576,6 +1703,9 @@
   const projectListContainer = document.getElementById('projectListContainer');
   const categoryFilters = document.getElementById('categoryFilters');
   const datasetListContainer = document.getElementById('datasetListContainer');
+
+  const autoNextCard = document.getElementById('autoNextCard');
+  const autoNextToggle = document.getElementById('autoNextToggle');
 
   const buatPageTitle = document.getElementById('buatPageTitle');
   const buatPageSubhead = document.getElementById('buatPageSubhead');
@@ -1702,6 +1832,21 @@
     const pair = activeGame.pairs[activeGame.currentIndex];
     if (!pair) return '';
     return activeGame.flipped ? pair.answer : pair.question;
+  }
+
+  // ======================================================================
+  // AUTO-NEXT SETTING UI
+  // ======================================================================
+  function renderAutoNextUI() {
+    autoNextToggle.classList.toggle('active', autoNextEnabled);
+    autoNextCard.classList.toggle('active', autoNextEnabled);
+    autoNextToggle.setAttribute('aria-pressed', autoNextEnabled ? 'true' : 'false');
+  }
+
+  function toggleAutoNext() {
+    autoNextEnabled = !autoNextEnabled;
+    saveAutoNext(autoNextEnabled);
+    renderAutoNextUI();
   }
 
   // ======================================================================
@@ -2305,13 +2450,22 @@
   }
 
   // ======================================================================
-  // GAME LOGIC
+  // GAME LOGIC v0.9
   // ======================================================================
+  function clearAutoNextTimer() {
+    if (activeGame.autoNextTimer) {
+      clearTimeout(activeGame.autoNextTimer);
+      activeGame.autoNextTimer = null;
+    }
+  }
+
   function startGame(projectId, title, pairs) {
     if (!pairs || pairs.length === 0) {
       alert('Tidak ada kartu untuk dimainkan.');
       return;
     }
+
+    clearAutoNextTimer();
 
     activeGame.projectId = projectId;
     activeGame.title = title;
@@ -2321,6 +2475,7 @@
     activeGame.currentIndex = 0;
     activeGame.flipped = false;
     activeGame.isAnimating = false;
+    activeGame.flipCount = 0;
 
     flashcardInner.style.transition = 'none';
     flashcardInner.classList.remove('flipped');
@@ -2340,6 +2495,9 @@
 
   function toggleShuffle() {
     if (activeGame.pairs.length <= 1) return;
+
+    clearAutoNextTimer();
+    activeGame.flipCount = 0;
 
     if (activeGame.isShuffled) {
       activeGame.pairs = [...activeGame.originalPairs];
@@ -2382,10 +2540,15 @@
       flashcardInner.classList.remove('flipped');
     }
 
-    gameMessage.textContent = `Kartu ${activeGame.currentIndex + 1} dari ${activeGame.pairs.length}`;
+    // Pesan + badge auto-lanjut
+    let msg = `Kartu ${activeGame.currentIndex + 1} dari ${activeGame.pairs.length}`;
+    if (autoNextEnabled) {
+      msg += `<span class="auto-badge">⚡ Auto-Lanjut ON</span>`;
+    }
+    gameMessage.innerHTML = msg;
 
     prevCardBtn.disabled = activeGame.currentIndex === 0;
-    nextCardBtn.disabled = activeGame.currentIndex >= activeGame.pairs.length - 1;
+    // Tombol next selalu aktif — kalau di akhir, akan wrap-around
 
     if (readerState.isOpen) updateReaderUI();
 
@@ -2400,6 +2563,7 @@
 
     activeGame.isAnimating = true;
     activeGame.flipped = !activeGame.flipped;
+    activeGame.flipCount++; // v0.9: hitung flip
 
     if (activeGame.flipped) {
       flashcardInner.classList.add('flipped');
@@ -2413,11 +2577,33 @@
 
     if (readerState.isOpen) updateReaderUI();
 
+    // v0.9: cek auto-lanjut
+    if (autoNextEnabled && activeGame.flipCount >= 2) {
+      scheduleAutoNext();
+    }
+
     setTimeout(() => { activeGame.isAnimating = false; }, 650);
   }
 
+  function scheduleAutoNext() {
+    clearAutoNextTimer();
+    activeGame.autoNextTimer = setTimeout(() => {
+      // Cek lagi apakah masih aktif & masih di kartu yang sama
+      if (!autoNextEnabled) return;
+      if (!gameOverlay.classList.contains('active')) return;
+      // Reset flipCount
+      activeGame.flipCount = 0;
+      // Lanjut (dengan wrap-around)
+      nextCard();
+    }, AUTO_NEXT_DELAY);
+  }
+
   function goToCard(newIndex) {
-    if (newIndex < 0 || newIndex >= activeGame.pairs.length) return;
+    if (activeGame.pairs.length === 0) return;
+
+    clearAutoNextTimer();
+    activeGame.flipCount = 0; // v0.9: reset saat ganti kartu
+
     if (newIndex === activeGame.currentIndex) return;
 
     if (activeGame.flipped) {
@@ -2436,18 +2622,29 @@
   }
 
   function nextCard() {
-    if (activeGame.currentIndex < activeGame.pairs.length - 1) {
-      goToCard(activeGame.currentIndex + 1);
+    if (activeGame.pairs.length === 0) return;
+    const nextIdx = activeGame.currentIndex + 1;
+    // v0.9: wrap-around ke kartu awal
+    if (nextIdx >= activeGame.pairs.length) {
+      goToCard(0);
+    } else {
+      goToCard(nextIdx);
     }
   }
 
   function prevCard() {
-    if (activeGame.currentIndex > 0) {
-      goToCard(activeGame.currentIndex - 1);
+    if (activeGame.pairs.length === 0) return;
+    const prevIdx = activeGame.currentIndex - 1;
+    // v0.9: wrap-around ke kartu terakhir juga (opsional, simetris)
+    if (prevIdx < 0) {
+      goToCard(activeGame.pairs.length - 1);
+    } else {
+      goToCard(prevIdx);
     }
   }
 
   function closeGame() {
+    clearAutoNextTimer();
     stopSpeaking();
     closeReader();
     gameOverlay.classList.remove('active');
@@ -2458,6 +2655,7 @@
     activeGame.currentIndex = 0;
     activeGame.flipped = false;
     activeGame.isAnimating = false;
+    activeGame.flipCount = 0;
     flashcardInner.classList.remove('flipped');
   }
 
@@ -2491,8 +2689,8 @@
     readerTitle.textContent = isFlipped ? '💡 JAWABAN' : '❓ PERTANYAAN';
     readerText.textContent = isFlipped ? pair.answer : pair.question;
 
-    readerPrevBtn.disabled = activeGame.currentIndex === 0;
-    readerNextBtn.disabled = activeGame.currentIndex >= activeGame.pairs.length - 1;
+    readerPrevBtn.disabled = activeGame.pairs.length <= 1;
+    readerNextBtn.disabled = activeGame.pairs.length <= 1;
 
     readerFlipBtn.textContent = isFlipped ? '🔄 Lihat Pertanyaan' : '🔄 Lihat Jawaban';
   }
@@ -2516,6 +2714,18 @@
   // EVENT LISTENERS
   // ======================================================================
   navBtns.forEach(btn => btn.addEventListener('click', () => switchPage(btn.dataset.page)));
+
+  // Toggle auto-lanjut
+  autoNextToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleAutoNext();
+  });
+  autoNextCard.addEventListener('click', (e) => {
+    // Klik di card (kecuali toggle) juga toggle
+    if (e.target === autoNextToggle) return;
+    toggleAutoNext();
+  });
+
   addCardTopBtn.addEventListener('click', () => {
     addPairCard('', '');
     const lastCard = pairsContainer.lastElementChild;
@@ -2649,6 +2859,7 @@
   window.addEventListener('DOMContentLoaded', () => {
     resetForm();
     renderPustaka();
+    renderAutoNextUI();
 
     if (!ttsSupported) {
       ttsWarning.classList.add('show');
