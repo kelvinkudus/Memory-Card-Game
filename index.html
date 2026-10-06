@@ -3,17 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flashcard · Pustaka & Buat v0.4.2</title>
+  <title>Flashcard · Pustaka & Buat v0.5</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-      -webkit-tap-highlight-color: transparent;   /* hapus kotak biru saat tap */
+      -webkit-tap-highlight-color: transparent;
     }
 
-    /* Hapus outline & tap highlight di semua elemen interaktif */
     button, .btn, .nav-btn, .icon-btn, .category-chip, a {
       -webkit-tap-highlight-color: transparent;
       -webkit-touch-callout: none;
@@ -22,7 +21,6 @@
       outline: none;
     }
 
-    /* Animasi tekan: mengecil sebentar saat :active */
     .btn, .nav-btn, .icon-btn, .category-chip {
       transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
     }
@@ -39,7 +37,6 @@
       box-shadow: 0 2px 5px rgba(45, 58, 94, 0.3);
     }
 
-    /* Aksesibilitas: outline hanya untuk keyboard */
     .btn:focus-visible,
     .nav-btn:focus-visible,
     .icon-btn:focus-visible,
@@ -49,11 +46,9 @@
     }
 
     /* ============================================
-       LAYOUT FULL-HEIGHT
+       LAYOUT
        ============================================ */
-    html, body {
-      height: 100%;
-    }
+    html, body { height: 100%; }
 
     body {
       background: #f3f5fc;
@@ -120,7 +115,6 @@
       min-height: 0;
     }
 
-    /* Area scroll internal */
     .page-content {
       flex: 1;
       overflow-y: auto;
@@ -244,9 +238,7 @@
       box-shadow: 0 4px 10px rgba(45, 58, 94, 0.25);
     }
 
-    .btn-primary:hover {
-      background: #1f2a4a;
-    }
+    .btn-primary:hover { background: #1f2a4a; }
 
     .btn-outline {
       background: white;
@@ -432,13 +424,17 @@
 
     .game-container {
       background: white;
-      max-width: 620px;
+      max-width: 640px;
       width: 100%;
       border-radius: 40px;
-      padding: 32px;
+      padding: 28px;
       box-shadow: 0 30px 60px rgba(0,0,0,0.4);
       position: relative;
       animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      max-height: 95vh;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
     }
 
     @keyframes popIn {
@@ -446,20 +442,22 @@
       to { transform: scale(1); opacity: 1; }
     }
 
-    .game-header {
+    /* Header game — 2 baris */
+    .game-header-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
       gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
     }
 
     .game-title {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       color: #1f2a4a;
-      max-width: 60%;
+      flex: 1;
+      min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -468,19 +466,89 @@
     .progress-badge {
       background: #eef2fc;
       color: #2d3a5e;
-      padding: 6px 16px;
+      padding: 6px 14px;
       border-radius: 40px;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+
+    .game-header-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 10px 12px;
+      background: #f7f9ff;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      border: 1px solid #e4ebfa;
+    }
+
+    .tts-control {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #4a5878;
+    }
+
+    .tts-btn {
+      background: white;
+      border: 1px solid #cdd6ea;
+      border-radius: 40px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #1f2a4a;
+      transition: 0.15s;
+      white-space: nowrap;
+    }
+
+    .tts-btn:hover {
+      background: #eef3ff;
+      border-color: #9aa9cc;
+    }
+
+    .tts-btn:active { transform: scale(0.94); }
+
+    .tts-btn.active {
+      background: #2d3a5e;
+      color: white;
+      border-color: #2d3a5e;
+    }
+
+    .tts-select {
+      background: white;
+      border: 1px solid #cdd6ea;
+      border-radius: 40px;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #1f2a4a;
+      cursor: pointer;
+      max-width: 130px;
+      font-family: inherit;
+    }
+
+    .tts-select:focus {
+      outline: 2px solid #2d3a5e;
+      border-color: transparent;
     }
 
     /* FLIP CARD */
     .flashcard-scene {
       width: 100%;
-      height: 260px;
+      height: 240px;
       perspective: 1400px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
+      flex-shrink: 0;
     }
 
     .flashcard-inner {
@@ -548,17 +616,30 @@
 
     .game-actions {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
       justify-content: center;
     }
 
     .small-note {
       text-align: center;
-      margin-top: 18px;
+      margin-top: 16px;
       font-size: 0.85rem;
       color: #6f7d9e;
     }
+
+    .tts-warning {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: #b8741a;
+      background: #fff7e6;
+      padding: 8px 12px;
+      border-radius: 12px;
+      display: none;
+    }
+
+    .tts-warning.show { display: block; }
 
     /* Footer */
     .footer-note {
@@ -661,10 +742,13 @@
         min-height: calc(100vh - 20px);
         border-radius: 24px;
       }
-      .flashcard-scene { height: 210px; }
+      .flashcard-scene { height: 200px; }
       .flashcard-face { font-size: 1.4rem; padding: 18px; }
-      .game-container { padding: 22px; }
+      .game-container { padding: 20px; border-radius: 28px; }
       h2 { font-size: 1.5rem; }
+      .game-header-controls { padding: 8px 10px; gap: 6px; }
+      .tts-btn { padding: 6px 10px; font-size: 0.78rem; }
+      .tts-select { font-size: 0.75rem; padding: 6px 8px; max-width: 110px; }
     }
   </style>
 </head>
@@ -730,15 +814,37 @@
     </div>
   </div>
 
-  <div class="footer-note">Flashcard v0.4.2 · localstorage · sumber data eksternal</div>
+  <div class="footer-note">Flashcard v0.5 · localstorage · sumber data eksternal · text-to-speech</div>
 </div>
 
 <!-- Game Overlay -->
 <div id="gameOverlay" class="game-overlay">
   <div class="game-container">
-    <div class="game-header">
+    <div class="game-header-top">
       <div id="gameTitle" class="game-title">—</div>
       <div id="progressBadge" class="progress-badge">1 / 1</div>
+    </div>
+
+    <!-- Kontrol TTS -->
+    <div class="game-header-controls">
+      <button class="tts-btn" id="ttsSpeakBtn" title="Bacakan teks yang tampil">🔊 Baca</button>
+      <button class="tts-btn" id="ttsAutoBtn" title="Auto-baca setiap ganti kartu / balik">🔈 Auto</button>
+      <div class="tts-control">
+        <span>🐢</span>
+        <select class="tts-select" id="ttsRateSelect" title="Kecepatan bicara">
+          <option value="0.5">0.5x</option>
+          <option value="0.75">0.75x</option>
+          <option value="1" selected>1x</option>
+          <option value="1.25">1.25x</option>
+          <option value="1.5">1.5x</option>
+        </select>
+      </div>
+      <div class="tts-control">
+        <span>🎙️</span>
+        <select class="tts-select" id="ttsVoiceSelect" title="Pilihan suara">
+          <option value="">Default</option>
+        </select>
+      </div>
     </div>
 
     <div class="flashcard-scene" id="flashcardScene">
@@ -761,6 +867,7 @@
       <button class="btn btn-danger" id="closeGameBtn">✖ Keluar</button>
     </div>
     <div id="gameMessage" class="small-note"></div>
+    <div id="ttsWarning" class="tts-warning">⚠️ Text-to-Speech tidak didukung browser ini.</div>
   </div>
 </div>
 
@@ -776,10 +883,11 @@
 </div>
 
 <script>
-  // ----------------------------------------------------------------------
+  // ======================================================================
   // KONSTANTA & UTIL
-  // ----------------------------------------------------------------------
+  // ======================================================================
   const STORAGE_KEY = 'flashcard_projects_v1';
+  const TTS_SETTINGS_KEY = 'flashcard_tts_settings_v1';
   const DATA_BASE = 'data/';
 
   function loadProjects() {
@@ -795,9 +903,7 @@
         createdAt: p.createdAt || Date.now(),
         imported: p.imported || false
       }));
-    } catch (e) {
-      return [];
-    }
+    } catch (e) { return []; }
   }
 
   function saveProjects(projects) {
@@ -811,9 +917,27 @@
     return div.innerHTML;
   }
 
-  // ----------------------------------------------------------------------
+  // ======================================================================
+  // TTS SETTINGS
+  // ======================================================================
+  function loadTtsSettings() {
+    const raw = localStorage.getItem(TTS_SETTINGS_KEY);
+    const defaults = { auto: false, rate: 1, voiceName: '' };
+    if (!raw) return defaults;
+    try {
+      return { ...defaults, ...JSON.parse(raw) };
+    } catch (e) { return defaults; }
+  }
+
+  function saveTtsSettings(s) {
+    localStorage.setItem(TTS_SETTINGS_KEY, JSON.stringify(s));
+  }
+
+  let ttsSettings = loadTtsSettings();
+
+  // ======================================================================
   // STATE
-  // ----------------------------------------------------------------------
+  // ======================================================================
   let projects = loadProjects();
   let catalog = [];
   let datasetCache = {};
@@ -828,9 +952,9 @@
     isAnimating: false,
   };
 
-  // ----------------------------------------------------------------------
-  // ELEMEN DOM
-  // ----------------------------------------------------------------------
+  // ======================================================================
+  // DOM
+  // ======================================================================
   const navBtns = document.querySelectorAll('.nav-btn');
   const pagePustaka = document.getElementById('page-pustaka');
   const pageSumber = document.getElementById('page-sumber');
@@ -860,13 +984,97 @@
   const cardFrontText = document.getElementById('cardFrontText');
   const cardBackText = document.getElementById('cardBackText');
 
+  const ttsSpeakBtn = document.getElementById('ttsSpeakBtn');
+  const ttsAutoBtn = document.getElementById('ttsAutoBtn');
+  const ttsRateSelect = document.getElementById('ttsRateSelect');
+  const ttsVoiceSelect = document.getElementById('ttsVoiceSelect');
+  const ttsWarning = document.getElementById('ttsWarning');
+
   const datasetModal = document.getElementById('datasetModal');
   const modalList = document.getElementById('modalList');
   const closeModalBtn = document.getElementById('closeModalBtn');
 
-  // ----------------------------------------------------------------------
+  // ======================================================================
+  // TEXT-TO-SPEECH ENGINE
+  // ======================================================================
+  const ttsSupported = 'speechSynthesis' in window;
+  let voices = [];
+
+  function loadVoices() {
+    if (!ttsSupported) return;
+    voices = window.speechSynthesis.getVoices();
+    // Urutkan: id-ID dulu, lalu lainnya
+    voices.sort((a, b) => {
+      const aId = a.lang.toLowerCase().startsWith('id');
+      const bId = b.lang.toLowerCase().startsWith('id');
+      if (aId && !bId) return -1;
+      if (!aId && bId) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    // Isi dropdown
+    const currentVal = ttsSettings.voiceName;
+    ttsVoiceSelect.innerHTML = '<option value="">Default (Indonesia)</option>' +
+      voices.map(v => {
+        const label = `${v.name} (${v.lang})${v.default ? ' ★' : ''}`;
+        return `<option value="${escapeHtml(v.name)}">${escapeHtml(label)}</option>`;
+      }).join('');
+
+    // Restore pilihan
+    if (currentVal && voices.some(v => v.name === currentVal)) {
+      ttsVoiceSelect.value = currentVal;
+    } else {
+      ttsVoiceSelect.value = '';
+      ttsSettings.voiceName = '';
+      saveTtsSettings(ttsSettings);
+    }
+  }
+
+  function speak(text) {
+    if (!ttsSupported || !text) return;
+    // Batalkan yang sedang berjalan
+    window.speechSynthesis.cancel();
+
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'id-ID';
+    utter.rate = ttsSettings.rate || 1;
+    utter.pitch = 1;
+    utter.volume = 1;
+
+    // Pilih voice
+    if (ttsSettings.voiceName) {
+      const v = voices.find(x => x.name === ttsSettings.voiceName);
+      if (v) {
+        utter.voice = v;
+        utter.lang = v.lang;
+      }
+    } else {
+      // Cari voice Indonesia default
+      const idVoice = voices.find(v => v.lang.toLowerCase().startsWith('id'));
+      if (idVoice) {
+        utter.voice = idVoice;
+        utter.lang = idVoice.lang;
+      }
+    }
+
+    window.speechSynthesis.speak(utter);
+  }
+
+  function stopSpeaking() {
+    if (ttsSupported) window.speechSynthesis.cancel();
+  }
+
+  // Teks yang sedang tampil di kartu (tergantung flipped)
+  function getCurrentVisibleText() {
+    if (activeGame.pairs.length === 0) return '';
+    const pair = activeGame.pairs[activeGame.currentIndex];
+    if (!pair) return '';
+    return activeGame.flipped ? pair.answer : pair.question;
+  }
+
+  // ======================================================================
   // RENDER PUSTAKA
-  // ----------------------------------------------------------------------
+  // ======================================================================
   function renderPustaka() {
     if (!projectListContainer) return;
     if (projects.length === 0) {
@@ -928,9 +1136,9 @@
     if (activeGame.projectId === projectId) closeGame();
   }
 
-  // ----------------------------------------------------------------------
+  // ======================================================================
   // SUMBER DATA
-  // ----------------------------------------------------------------------
+  // ======================================================================
   async function loadCatalog() {
     try {
       const res = await fetch(DATA_BASE + 'index.json', { cache: 'no-store' });
@@ -1052,9 +1260,9 @@
     }
   }
 
-  // ----------------------------------------------------------------------
+  // ======================================================================
   // FORM BUAT
-  // ----------------------------------------------------------------------
+  // ======================================================================
   function addPairRow(question = '', answer = '') {
     const row = document.createElement('div');
     row.className = 'pair-row';
@@ -1067,9 +1275,7 @@
     pairsContainer.appendChild(row);
   }
 
-  function clearPairs() {
-    pairsContainer.innerHTML = '';
-  }
+  function clearPairs() { pairsContainer.innerHTML = ''; }
 
   function resetForm() {
     projectNameInput.value = '';
@@ -1099,9 +1305,7 @@
 
     const newProject = {
       id: 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-      name,
-      description: desc,
-      pairs,
+      name, description: desc, pairs,
       createdAt: Date.now(),
       imported: false
     };
@@ -1113,9 +1317,9 @@
     renderPustaka();
   }
 
-  // ----------------------------------------------------------------------
+  // ======================================================================
   // MODAL
-  // ----------------------------------------------------------------------
+  // ======================================================================
   function openDatasetModal() {
     if (catalog.length === 0) {
       alert('Katalog dataset belum termuat. Cek koneksi atau folder data/.');
@@ -1138,9 +1342,7 @@
     datasetModal.classList.add('active');
   }
 
-  function closeDatasetModal() {
-    datasetModal.classList.remove('active');
-  }
+  function closeDatasetModal() { datasetModal.classList.remove('active'); }
 
   async function loadDatasetIntoForm(id) {
     try {
@@ -1163,9 +1365,9 @@
     }
   }
 
-  // ----------------------------------------------------------------------
+  // ======================================================================
   // GAME LOGIC
-  // ----------------------------------------------------------------------
+  // ======================================================================
   function startGame(projectId, title, pairs) {
     if (!pairs || pairs.length === 0) {
       alert('Tidak ada kartu untuk dimainkan.');
@@ -1211,6 +1413,12 @@
 
     prevCardBtn.disabled = activeGame.currentIndex === 0;
     nextCardBtn.disabled = activeGame.currentIndex >= activeGame.pairs.length - 1;
+
+    // Auto-baca (kalau aktif)
+    if (ttsSettings.auto) {
+      // Delay kecil agar UI update dulu sebelum suara
+      setTimeout(() => speak(getCurrentVisibleText()), 120);
+    }
   }
 
   function flipCard() {
@@ -1224,6 +1432,11 @@
       flashcardInner.classList.add('flipped');
     } else {
       flashcardInner.classList.remove('flipped');
+    }
+
+    // Auto-baca setelah flip (tunggu sedikit agar animasi mulai)
+    if (ttsSettings.auto) {
+      setTimeout(() => speak(getCurrentVisibleText()), 300);
     }
 
     setTimeout(() => { activeGame.isAnimating = false; }, 650);
@@ -1261,6 +1474,7 @@
   }
 
   function closeGame() {
+    stopSpeaking();
     gameOverlay.classList.remove('active');
     activeGame.projectId = null;
     activeGame.pairs = [];
@@ -1270,9 +1484,9 @@
     flashcardInner.classList.remove('flipped');
   }
 
-  // ----------------------------------------------------------------------
+  // ======================================================================
   // NAVIGASI
-  // ----------------------------------------------------------------------
+  // ======================================================================
   function switchPage(pageId) {
     navBtns.forEach(btn => {
       btn.classList.toggle('active', btn.dataset.page === pageId);
@@ -1285,9 +1499,9 @@
     if (pageId === 'sumber' && catalog.length === 0) loadCatalog();
   }
 
-  // ----------------------------------------------------------------------
+  // ======================================================================
   // EVENT LISTENERS
-  // ----------------------------------------------------------------------
+  // ======================================================================
   navBtns.forEach(btn => btn.addEventListener('click', () => switchPage(btn.dataset.page)));
   addPairBtn.addEventListener('click', () => addPairRow('', ''));
   loadFromDatasetBtn.addEventListener('click', openDatasetModal);
@@ -1304,6 +1518,37 @@
     if (e.target === datasetModal) closeDatasetModal();
   });
 
+  // -------- TTS EVENTS --------
+  // Tombol Baca
+  ttsSpeakBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const text = getCurrentVisibleText();
+    if (text) speak(text);
+  });
+
+  // Tombol Auto
+  ttsAutoBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    ttsSettings.auto = !ttsSettings.auto;
+    saveTtsSettings(ttsSettings);
+    ttsAutoBtn.classList.toggle('active', ttsSettings.auto);
+    ttsAutoBtn.textContent = ttsSettings.auto ? '🔊 Auto ON' : '🔈 Auto';
+    if (!ttsSettings.auto) stopSpeaking();
+  });
+
+  // Pilihan kecepatan
+  ttsRateSelect.addEventListener('change', (e) => {
+    ttsSettings.rate = parseFloat(e.target.value) || 1;
+    saveTtsSettings(ttsSettings);
+  });
+
+  // Pilihan voice
+  ttsVoiceSelect.addEventListener('change', (e) => {
+    ttsSettings.voiceName = e.target.value;
+    saveTtsSettings(ttsSettings);
+  });
+
+  // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
     if (datasetModal.classList.contains('active') && e.code === 'Escape') {
       closeDatasetModal();
@@ -1322,9 +1567,39 @@
     }
   });
 
+  // ======================================================================
+  // INISIALISASI
+  // ======================================================================
   window.addEventListener('DOMContentLoaded', () => {
     resetForm();
     renderPustaka();
+
+    // ---- TTS init ----
+    if (!ttsSupported) {
+      ttsWarning.classList.add('show');
+      ttsSpeakBtn.disabled = true;
+      ttsAutoBtn.disabled = true;
+      ttsRateSelect.disabled = true;
+      ttsVoiceSelect.disabled = true;
+    } else {
+      // Terapkan settings tersimpan
+      ttsRateSelect.value = String(ttsSettings.rate || 1);
+      ttsAutoBtn.classList.toggle('active', !!ttsSettings.auto);
+      ttsAutoBtn.textContent = ttsSettings.auto ? '🔊 Auto ON' : '🔈 Auto';
+
+      // Load voices (async di beberapa browser)
+      loadVoices();
+      if (typeof speechSynthesis.onvoiceschanged !== 'undefined') {
+        speechSynthesis.onvoiceschanged = loadVoices;
+      }
+      // Fallback: coba sekali lagi setelah 500ms
+      setTimeout(loadVoices, 500);
+    }
+
+    // Hentikan suara kalau tab kehilangan fokus (biar tidak mengganggu)
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopSpeaking();
+    });
   });
 </script>
 </body>
