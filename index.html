@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flashcard · Pustaka & Buat v0.3</title>
+  <title>Flashcard · Pustaka & Buat v0.4</title>
   <style>
     * {
       box-sizing: border-box;
@@ -37,12 +37,13 @@
       padding-bottom: 20px;
       border-bottom: 2px solid #e9ecf5;
       margin-bottom: 24px;
+      flex-wrap: wrap;
     }
 
     .nav-btn {
       background: transparent;
       border: none;
-      font-size: 1.3rem;
+      font-size: 1.15rem;
       font-weight: 600;
       padding: 10px 20px;
       border-radius: 40px;
@@ -80,7 +81,7 @@
       margin-bottom: 20px;
     }
 
-    /* kartu proyek di pustaka */
+    /* kartu proyek */
     .project-grid {
       display: flex;
       flex-direction: column;
@@ -98,6 +99,7 @@
       justify-content: space-between;
       transition: 0.15s;
       box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      gap: 12px;
     }
 
     .project-card:hover {
@@ -126,6 +128,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      flex-wrap: wrap;
     }
 
     .badge {
@@ -135,6 +138,11 @@
       font-size: 0.8rem;
       font-weight: 600;
       color: #2d3a5e;
+    }
+
+    .badge-imported {
+      background: #e6f7e9;
+      color: #2e7d32;
     }
 
     .project-actions {
@@ -191,6 +199,14 @@
 
     .btn-danger:hover { background: #ffe0e0; }
 
+    .btn-success {
+      background: #e6f7e9;
+      color: #2e7d32;
+      border: 1px solid #a5d6a7;
+    }
+
+    .btn-success:hover { background: #c8ebcc; }
+
     .btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
@@ -212,7 +228,7 @@
       margin-bottom: 6px;
     }
 
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       padding: 14px 18px;
       border-radius: 20px;
@@ -221,9 +237,10 @@
       background: #ffffff;
       transition: 0.15s;
       resize: vertical;
+      font-family: inherit;
     }
 
-    input:focus, textarea:focus {
+    input:focus, textarea:focus, select:focus {
       outline: 2px solid #2d3a5e;
       border-color: transparent;
     }
@@ -273,6 +290,55 @@
       background: #f8faff;
       border-radius: 36px;
       border: 2px dashed #ced8ec;
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #7a86a8;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e0e7f5;
+      border-top-color: #2d3a5e;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Kategori */
+    .category-filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .category-chip {
+      background: #f0f3fa;
+      border: 1px solid #dde5f5;
+      padding: 8px 16px;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #2d3a5e;
+      transition: 0.15s;
+    }
+
+    .category-chip:hover { background: #e6ecfc; }
+
+    .category-chip.active {
+      background: #2d3a5e;
+      color: white;
+      border-color: #2d3a5e;
     }
 
     /* ============================================
@@ -343,9 +409,7 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* ============================================
-       FLIP CARD ANIMATION
-       ============================================ */
+    /* FLIP CARD */
     .flashcard-scene {
       width: 100%;
       height: 260px;
@@ -436,11 +500,90 @@
       color: #a2aec9;
     }
 
+    /* Modal pilih dataset */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(20, 25, 40, 0.75);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 1100;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal-container {
+      background: white;
+      max-width: 560px;
+      width: 100%;
+      border-radius: 32px;
+      padding: 28px;
+      max-height: 85vh;
+      overflow-y: auto;
+      animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h3 {
+      font-size: 1.4rem;
+      color: #1f2a4a;
+    }
+
+    .modal-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .modal-dataset-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border: 1px solid #d9e0f0;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.15s;
+      gap: 12px;
+    }
+
+    .modal-dataset-item:hover {
+      background: #f5f8ff;
+      border-color: #9aa9cc;
+    }
+
+    .modal-dataset-info {
+      flex: 1;
+    }
+
+    .modal-dataset-name {
+      font-weight: 700;
+      color: #1f2a4a;
+      font-size: 1rem;
+    }
+
+    .modal-dataset-meta {
+      font-size: 0.85rem;
+      color: #6f7d9e;
+      margin-top: 4px;
+    }
+
     /* Responsive */
     @media (max-width: 480px) {
       .flashcard-scene { height: 210px; }
       .flashcard-face { font-size: 1.4rem; padding: 18px; }
       .game-container { padding: 22px; }
+      .app { padding: 18px; }
     }
   </style>
 </head>
@@ -449,6 +592,7 @@
   <!-- Navbar -->
   <div class="navbar">
     <button class="nav-btn active" data-page="pustaka"><i>📖</i> Pustaka</button>
+    <button class="nav-btn" data-page="sumber"><i>🌐</i> Sumber Data</button>
     <button class="nav-btn" data-page="buat"><i>📤</i> Buat</button>
   </div>
 
@@ -457,6 +601,19 @@
     <h2>📚 Pustaka Flashcard</h2>
     <div class="subhead">Koleksi projek yang kamu buat</div>
     <div id="projectListContainer" class="project-grid"></div>
+  </div>
+
+  <!-- Halaman Sumber Data -->
+  <div id="page-sumber" class="page">
+    <h2>🌐 Sumber Data</h2>
+    <div class="subhead">Dataset bawaan — bisa langsung dimainkan atau diimpor ke projekmu</div>
+    <div id="categoryFilters" class="category-filters"></div>
+    <div id="datasetListContainer" class="project-grid">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <div>Memuat dataset...</div>
+      </div>
+    </div>
   </div>
 
   <!-- Halaman Buat -->
@@ -474,9 +631,12 @@
     </div>
 
     <div class="card-pairs-section">
-      <label style="display: flex; justify-content: space-between; align-items: center;">
+      <label style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
         <span>🃏 Pasangan Kartu</span>
-        <button class="btn btn-outline btn-sm" id="addPairBtn" type="button">+ Tambah</button>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn btn-success btn-sm" id="loadFromDatasetBtn" type="button">📥 Muat dari Sumber Data</button>
+          <button class="btn btn-outline btn-sm" id="addPairBtn" type="button">+ Tambah</button>
+        </div>
       </label>
       <div id="pairsContainer" style="margin-top: 16px;"></div>
     </div>
@@ -484,7 +644,7 @@
     <button class="btn btn-primary" id="saveProjectBtn" style="width: 100%; justify-content: center; padding: 16px;">💾 Simpan Projek</button>
   </div>
 
-  <div class="footer-note">Flashcard v0.3 · localstorage · animasi flip 3D</div>
+  <div class="footer-note">Flashcard v0.4 · localstorage · sumber data eksternal</div>
 </div>
 
 <!-- Game Overlay -->
@@ -495,7 +655,6 @@
       <div id="progressBadge" class="progress-badge">1 / 1</div>
     </div>
 
-    <!-- FLIP CARD SCENE -->
     <div class="flashcard-scene" id="flashcardScene">
       <div class="flashcard-inner" id="flashcardInner">
         <div class="flashcard-face flashcard-front">
@@ -519,24 +678,36 @@
   </div>
 </div>
 
+<!-- Modal pilih dataset -->
+<div id="datasetModal" class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h3>📥 Pilih Dataset</h3>
+      <button class="icon-btn" id="closeModalBtn" type="button">✖</button>
+    </div>
+    <div id="modalList" class="modal-list"></div>
+  </div>
+</div>
+
 <script>
   // ----------------------------------------------------------------------
   // KONSTANTA & UTIL
   // ----------------------------------------------------------------------
   const STORAGE_KEY = 'flashcard_projects_v1';
+  const DATA_BASE = 'data/';
 
   function loadProjects() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     try {
       const projects = JSON.parse(raw);
-      // v0.3: hapus properti lives/lastRefill jika ada (data lama)
       return projects.map(p => ({
         id: p.id,
         name: p.name,
         description: p.description || '',
         pairs: p.pairs || [],
-        createdAt: p.createdAt || Date.now()
+        createdAt: p.createdAt || Date.now(),
+        imported: p.imported || false
       }));
     } catch (e) {
       return [];
@@ -547,13 +718,24 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
   }
 
+  function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   // ----------------------------------------------------------------------
   // STATE
   // ----------------------------------------------------------------------
   let projects = loadProjects();
+  let catalog = [];          // katalog dataset dari data/index.json
+  let datasetCache = {};     // cache isi dataset: { id: {...} }
+  let activeCategory = 'Semua';
 
   let activeGame = {
     projectId: null,
+    title: '',
     pairs: [],
     currentIndex: 0,
     flipped: false,
@@ -565,13 +747,18 @@
   // ----------------------------------------------------------------------
   const navBtns = document.querySelectorAll('.nav-btn');
   const pagePustaka = document.getElementById('page-pustaka');
+  const pageSumber = document.getElementById('page-sumber');
   const pageBuat = document.getElementById('page-buat');
+
   const projectListContainer = document.getElementById('projectListContainer');
+  const categoryFilters = document.getElementById('categoryFilters');
+  const datasetListContainer = document.getElementById('datasetListContainer');
 
   const projectNameInput = document.getElementById('projectName');
   const projectDescInput = document.getElementById('projectDesc');
   const pairsContainer = document.getElementById('pairsContainer');
   const addPairBtn = document.getElementById('addPairBtn');
+  const loadFromDatasetBtn = document.getElementById('loadFromDatasetBtn');
   const saveProjectBtn = document.getElementById('saveProjectBtn');
 
   const gameOverlay = document.getElementById('gameOverlay');
@@ -587,6 +774,10 @@
   const cardFrontText = document.getElementById('cardFrontText');
   const cardBackText = document.getElementById('cardBackText');
 
+  const datasetModal = document.getElementById('datasetModal');
+  const modalList = document.getElementById('modalList');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+
   // ----------------------------------------------------------------------
   // RENDER PUSTAKA
   // ----------------------------------------------------------------------
@@ -597,7 +788,8 @@
         <div class="empty-state">
           <div style="font-size: 4rem; margin-bottom: 16px;">📭</div>
           <h3 style="color: #2d3a5e;">Belum ada projek</h3>
-          <p>Buat flashcard pertamamu di halaman <strong>📤 Buat</strong></p>
+          <p>Buat flashcard pertamamu di halaman <strong>📤 Buat</strong>,</p>
+          <p>atau impor dari <strong>🌐 Sumber Data</strong></p>
         </div>
       `;
       return;
@@ -606,12 +798,15 @@
     let html = '';
     projects.forEach(project => {
       const totalPairs = project.pairs ? project.pairs.length : 0;
+      const importedBadge = project.imported
+        ? `<span class="badge badge-imported">📥 Hasil Impor</span>`
+        : '';
       html += `
         <div class="project-card" data-project-id="${project.id}">
           <div class="project-info">
             <div class="project-title">${escapeHtml(project.name)}</div>
             <div class="project-desc">
-              ${escapeHtml(project.description || 'Tanpa deskripsi')} · ${totalPairs} kartu
+              ${escapeHtml(project.description || 'Tanpa deskripsi')} · ${totalPairs} kartu ${importedBadge}
             </div>
           </div>
           <div class="project-actions">
@@ -627,7 +822,8 @@
     document.querySelectorAll('.play-project').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        startGame(btn.dataset.id);
+        const proj = projects.find(p => p.id === btn.dataset.id);
+        if (proj) startGame(proj.id, proj.name, proj.pairs);
       });
     });
     document.querySelectorAll('.delete-project').forEach(btn => {
@@ -638,19 +834,136 @@
     });
   }
 
-  function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
   function deleteProject(projectId) {
     if (!confirm('Yakin ingin menghapus projek ini?')) return;
     projects = projects.filter(p => p.id !== projectId);
     saveProjects(projects);
     renderPustaka();
     if (activeGame.projectId === projectId) closeGame();
+  }
+
+  // ----------------------------------------------------------------------
+  // SUMBER DATA (fetch dari data/index.json)
+  // ----------------------------------------------------------------------
+  async function loadCatalog() {
+    try {
+      const res = await fetch(DATA_BASE + 'index.json', { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const json = await res.json();
+      catalog = json.datasets || [];
+      renderCategoryFilters();
+      renderDatasetList();
+    } catch (err) {
+      console.error('Gagal memuat katalog:', err);
+      datasetListContainer.innerHTML = `
+        <div class="empty-state">
+          <div style="font-size: 3rem; margin-bottom: 12px;">⚠️</div>
+          <h3 style="color: #2d3a5e;">Gagal memuat sumber data</h3>
+          <p>Pastikan folder <code>data/</code> sudah diupload ke repo.</p>
+          <p style="margin-top: 8px; font-size: 0.85rem; opacity: 0.7;">Error: ${escapeHtml(err.message)}</p>
+        </div>
+      `;
+    }
+  }
+
+  function renderCategoryFilters() {
+    const categories = ['Semua', ...new Set(catalog.map(d => d.category).filter(Boolean))];
+    categoryFilters.innerHTML = categories.map(cat => `
+      <button class="category-chip ${cat === activeCategory ? 'active' : ''}" data-cat="${escapeHtml(cat)}">
+        ${escapeHtml(cat)}
+      </button>
+    `).join('');
+
+    categoryFilters.querySelectorAll('.category-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        activeCategory = chip.dataset.cat;
+        renderCategoryFilters();
+        renderDatasetList();
+      });
+    });
+  }
+
+  function renderDatasetList() {
+    const filtered = activeCategory === 'Semua'
+      ? catalog
+      : catalog.filter(d => d.category === activeCategory);
+
+    if (filtered.length === 0) {
+      datasetListContainer.innerHTML = `
+        <div class="empty-state">
+          <p>Tidak ada dataset dalam kategori ini.</p>
+        </div>
+      `;
+      return;
+    }
+
+    datasetListContainer.innerHTML = filtered.map(d => `
+      <div class="project-card">
+        <div class="project-info">
+          <div class="project-title">${escapeHtml(d.icon || '📄')} ${escapeHtml(d.name)}</div>
+          <div class="project-desc">
+            ${escapeHtml(d.description || '')}
+            <span class="badge">${escapeHtml(d.category || 'Umum')}</span>
+            <span class="badge">${d.count || '?'} kartu</span>
+          </div>
+        </div>
+        <div class="project-actions">
+          <button class="btn btn-outline btn-sm play-dataset" data-id="${escapeHtml(d.id)}">▶ Mulai</button>
+          <button class="btn btn-success btn-sm import-dataset" data-id="${escapeHtml(d.id)}">📥 Impor</button>
+        </div>
+      </div>
+    `).join('');
+
+    datasetListContainer.querySelectorAll('.play-dataset').forEach(btn => {
+      btn.addEventListener('click', () => playDataset(btn.dataset.id));
+    });
+    datasetListContainer.querySelectorAll('.import-dataset').forEach(btn => {
+      btn.addEventListener('click', () => importDataset(btn.dataset.id));
+    });
+  }
+
+  async function fetchDataset(id) {
+    if (datasetCache[id]) return datasetCache[id];
+    const meta = catalog.find(d => d.id === id);
+    if (!meta) throw new Error('Dataset tidak ditemukan di katalog');
+    const res = await fetch(DATA_BASE + meta.file, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    datasetCache[id] = json;
+    return json;
+  }
+
+  async function playDataset(id) {
+    try {
+      const data = await fetchDataset(id);
+      const meta = catalog.find(d => d.id === id);
+      startGame('dataset_' + id, data.name || meta.name, data.pairs || []);
+    } catch (err) {
+      alert('Gagal memuat dataset: ' + err.message);
+    }
+  }
+
+  async function importDataset(id) {
+    try {
+      const data = await fetchDataset(id);
+      const meta = catalog.find(d => d.id === id);
+      const name = (data.name || meta.name) + ' (Impor)';
+      const newProject = {
+        id: 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+        name,
+        description: data.description || meta.description || 'Hasil impor dari Sumber Data',
+        pairs: (data.pairs || []).map(p => ({ question: p.question, answer: p.answer })),
+        createdAt: Date.now(),
+        imported: true
+      };
+      projects.push(newProject);
+      saveProjects(projects);
+      alert(`✅ "${name}" berhasil diimpor dengan ${newProject.pairs.length} kartu!`);
+      switchPage('pustaka');
+      renderPustaka();
+    } catch (err) {
+      alert('Gagal mengimpor dataset: ' + err.message);
+    }
   }
 
   // ----------------------------------------------------------------------
@@ -668,10 +981,14 @@
     pairsContainer.appendChild(row);
   }
 
+  function clearPairs() {
+    pairsContainer.innerHTML = '';
+  }
+
   function resetForm() {
     projectNameInput.value = '';
     projectDescInput.value = '';
-    pairsContainer.innerHTML = '';
+    clearPairs();
     addPairRow('', '');
     addPairRow('', '');
   }
@@ -699,7 +1016,8 @@
       name,
       description: desc,
       pairs,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      imported: false
     };
 
     projects.push(newProject);
@@ -710,40 +1028,87 @@
   }
 
   // ----------------------------------------------------------------------
-  // GAME LOGIC (v0.3 - hanya Normal mode)
+  // MODAL: pilih dataset untuk dimuat ke form
   // ----------------------------------------------------------------------
-  function startGame(projectId) {
-    const project = projects.find(p => p.id === projectId);
-    if (!project) return;
-    if (!project.pairs || project.pairs.length === 0) {
-      alert('Projek ini tidak memiliki kartu.');
+  function openDatasetModal() {
+    if (catalog.length === 0) {
+      alert('Katalog dataset belum termuat. Cek koneksi atau folder data/.');
+      return;
+    }
+    modalList.innerHTML = catalog.map(d => `
+      <div class="modal-dataset-item" data-id="${escapeHtml(d.id)}">
+        <div class="modal-dataset-info">
+          <div class="modal-dataset-name">${escapeHtml(d.icon || '📄')} ${escapeHtml(d.name)}</div>
+          <div class="modal-dataset-meta">${escapeHtml(d.category || 'Umum')} · ${d.count || '?'} kartu</div>
+        </div>
+        <span class="badge">Pilih</span>
+      </div>
+    `).join('');
+
+    modalList.querySelectorAll('.modal-dataset-item').forEach(item => {
+      item.addEventListener('click', () => loadDatasetIntoForm(item.dataset.id));
+    });
+
+    datasetModal.classList.add('active');
+  }
+
+  function closeDatasetModal() {
+    datasetModal.classList.remove('active');
+  }
+
+  async function loadDatasetIntoForm(id) {
+    try {
+      const data = await fetchDataset(id);
+      const meta = catalog.find(d => d.id === id);
+      // Isi form
+      if (!projectNameInput.value.trim()) {
+        projectNameInput.value = data.name || meta.name || '';
+      }
+      if (!projectDescInput.value.trim()) {
+        projectDescInput.value = data.description || meta.description || '';
+      }
+      // Isi pasangan
+      clearPairs();
+      (data.pairs || []).forEach(p => addPairRow(p.question, p.answer));
+      if ((data.pairs || []).length === 0) addPairRow('', '');
+
+      closeDatasetModal();
+      // Scroll ke area pasangan
+      pairsContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch (err) {
+      alert('Gagal memuat dataset: ' + err.message);
+    }
+  }
+
+  // ----------------------------------------------------------------------
+  // GAME LOGIC
+  // ----------------------------------------------------------------------
+  function startGame(projectId, title, pairs) {
+    if (!pairs || pairs.length === 0) {
+      alert('Tidak ada kartu untuk dimainkan.');
       return;
     }
 
     activeGame.projectId = projectId;
-    activeGame.pairs = [...project.pairs];
+    activeGame.title = title;
+    activeGame.pairs = [...pairs];
     activeGame.currentIndex = 0;
     activeGame.flipped = false;
     activeGame.isAnimating = false;
 
-    // Reset kartu ke posisi depan tanpa animasi
     flashcardInner.style.transition = 'none';
     flashcardInner.classList.remove('flipped');
     void flashcardInner.offsetWidth;
     flashcardInner.style.transition = '';
 
-    // Set judul game
-    gameTitle.textContent = project.name;
-
+    gameTitle.textContent = title;
     updateGameUI();
     gameOverlay.classList.add('active');
   }
 
   function updateGameUI() {
-    // Update progress
     progressBadge.textContent = `${activeGame.currentIndex + 1} / ${activeGame.pairs.length}`;
 
-    // Isi teks kartu
     const pair = activeGame.pairs[activeGame.currentIndex];
     if (pair) {
       cardFrontText.textContent = pair.question;
@@ -753,17 +1118,14 @@
       cardBackText.textContent = '🎉';
     }
 
-    // Sinkronkan flip
     if (activeGame.flipped) {
       flashcardInner.classList.add('flipped');
     } else {
       flashcardInner.classList.remove('flipped');
     }
 
-    // Pesan bawah
     gameMessage.textContent = `Kartu ${activeGame.currentIndex + 1} dari ${activeGame.pairs.length}`;
 
-    // Tombol prev/next
     prevCardBtn.disabled = activeGame.currentIndex === 0;
     nextCardBtn.disabled = activeGame.currentIndex >= activeGame.pairs.length - 1;
   }
@@ -784,19 +1146,16 @@
     setTimeout(() => { activeGame.isAnimating = false; }, 650);
   }
 
-  // Fungsi umum untuk pindah ke kartu lain dengan animasi halus
   function goToCard(newIndex) {
     if (newIndex < 0 || newIndex >= activeGame.pairs.length) return;
     if (newIndex === activeGame.currentIndex) return;
 
-    // Jika kartu sedang terbalik, balik dulu dengan animasi
     if (activeGame.flipped) {
       activeGame.flipped = false;
       flashcardInner.classList.remove('flipped');
       setTimeout(() => {
         activeGame.currentIndex = newIndex;
         activeGame.flipped = false;
-        // Karena class sudah dilepas, langsung render teks baru
         updateGameUI();
       }, 350);
     } else {
@@ -836,8 +1195,11 @@
       btn.classList.toggle('active', btn.dataset.page === pageId);
     });
     pagePustaka.classList.toggle('active', pageId === 'pustaka');
+    pageSumber.classList.toggle('active', pageId === 'sumber');
     pageBuat.classList.toggle('active', pageId === 'buat');
+
     if (pageId === 'pustaka') renderPustaka();
+    if (pageId === 'sumber' && catalog.length === 0) loadCatalog();
   }
 
   // ----------------------------------------------------------------------
@@ -845,18 +1207,26 @@
   // ----------------------------------------------------------------------
   navBtns.forEach(btn => btn.addEventListener('click', () => switchPage(btn.dataset.page)));
   addPairBtn.addEventListener('click', () => addPairRow('', ''));
+  loadFromDatasetBtn.addEventListener('click', openDatasetModal);
   saveProjectBtn.addEventListener('click', handleSaveProject);
 
   flipCardBtn.addEventListener('click', flipCard);
   nextCardBtn.addEventListener('click', nextCard);
   prevCardBtn.addEventListener('click', prevCard);
   closeGameBtn.addEventListener('click', closeGame);
-
-  // Klik kartu untuk flip
   document.getElementById('flashcardScene').addEventListener('click', flipCard);
 
-  // Keyboard shortcut: Spasi = flip, panah kiri/kanan = navigasi, Esc = keluar
+  closeModalBtn.addEventListener('click', closeDatasetModal);
+  datasetModal.addEventListener('click', (e) => {
+    if (e.target === datasetModal) closeDatasetModal();
+  });
+
+  // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
+    if (datasetModal.classList.contains('active') && e.code === 'Escape') {
+      closeDatasetModal();
+      return;
+    }
     if (!gameOverlay.classList.contains('active')) return;
     if (e.code === 'Space') {
       e.preventDefault();
