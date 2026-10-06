@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flashcard · Pustaka & Buat v0.4</title>
+  <title>Flashcard · Pustaka & Buat v0.4.1</title>
   <style>
     * {
       box-sizing: border-box;
@@ -12,10 +12,18 @@
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
     }
 
+    /* ============================================
+       LAYOUT FULL-HEIGHT (v0.4.1)
+       ============================================ */
+    html, body {
+      height: 100%;
+    }
+
     body {
       background: #f3f5fc;
       display: flex;
       justify-content: center;
+      align-items: stretch;              /* ubah dari default */
       min-height: 100vh;
       padding: 16px;
     }
@@ -23,11 +31,13 @@
     .app {
       max-width: 1000px;
       width: 100%;
+      min-height: calc(100vh - 32px);    /* full tinggi minus padding body */
       background: white;
       border-radius: 32px;
       box-shadow: 0 20px 40px rgba(0, 20, 50, 0.12);
       padding: 24px 28px;
-      height: fit-content;
+      display: flex;
+      flex-direction: column;            /* biar halaman dalamnya bisa flex */
     }
 
     /* Navbar */
@@ -38,6 +48,7 @@
       border-bottom: 2px solid #e9ecf5;
       margin-bottom: 24px;
       flex-wrap: wrap;
+      flex-shrink: 0;
     }
 
     .nav-btn {
@@ -67,18 +78,41 @@
 
     /* Halaman */
     .page { display: none; }
-    .page.active { display: block; }
+    .page.active {
+      display: flex;
+      flex-direction: column;
+      flex: 1;                           /* ambil sisa tinggi .app */
+      min-height: 0;                     /* biar bisa scroll internal */
+    }
+
+    /* Area scroll internal di dalam halaman */
+    .page-content {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    /* Scrollbar halus */
+    .page-content::-webkit-scrollbar { width: 8px; }
+    .page-content::-webkit-scrollbar-track { background: transparent; }
+    .page-content::-webkit-scrollbar-thumb {
+      background: #d9e0f0;
+      border-radius: 8px;
+    }
+    .page-content::-webkit-scrollbar-thumb:hover { background: #b0bedb; }
 
     h2 {
       font-size: 1.8rem;
       color: #1f2a4a;
       margin-bottom: 12px;
       font-weight: 700;
+      flex-shrink: 0;
     }
 
     .subhead {
       color: #5e6b8c;
       margin-bottom: 20px;
+      flex-shrink: 0;
     }
 
     /* kartu proyek */
@@ -119,6 +153,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
     .project-desc {
@@ -319,6 +354,7 @@
       gap: 8px;
       flex-wrap: wrap;
       margin-bottom: 20px;
+      flex-shrink: 0;
     }
 
     .category-chip {
@@ -493,11 +529,15 @@
       color: #6f7d9e;
     }
 
+    /* Footer — selalu di dasar .app */
     .footer-note {
-      margin-top: 32px;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid #eef1fa;
       font-size: 0.8rem;
       text-align: center;
       color: #a2aec9;
+      flex-shrink: 0;
     }
 
     /* Modal pilih dataset */
@@ -562,9 +602,7 @@
       border-color: #9aa9cc;
     }
 
-    .modal-dataset-info {
-      flex: 1;
-    }
+    .modal-dataset-info { flex: 1; }
 
     .modal-dataset-name {
       font-weight: 700;
@@ -580,10 +618,16 @@
 
     /* Responsive */
     @media (max-width: 480px) {
+      body { padding: 10px; }
+      .app {
+        padding: 18px;
+        min-height: calc(100vh - 20px);
+        border-radius: 24px;
+      }
       .flashcard-scene { height: 210px; }
       .flashcard-face { font-size: 1.4rem; padding: 18px; }
       .game-container { padding: 22px; }
-      .app { padding: 18px; }
+      h2 { font-size: 1.5rem; }
     }
   </style>
 </head>
@@ -600,7 +644,9 @@
   <div id="page-pustaka" class="page active">
     <h2>📚 Pustaka Flashcard</h2>
     <div class="subhead">Koleksi projek yang kamu buat</div>
-    <div id="projectListContainer" class="project-grid"></div>
+    <div class="page-content">
+      <div id="projectListContainer" class="project-grid"></div>
+    </div>
   </div>
 
   <!-- Halaman Sumber Data -->
@@ -608,10 +654,12 @@
     <h2>🌐 Sumber Data</h2>
     <div class="subhead">Dataset bawaan — bisa langsung dimainkan atau diimpor ke projekmu</div>
     <div id="categoryFilters" class="category-filters"></div>
-    <div id="datasetListContainer" class="project-grid">
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <div>Memuat dataset...</div>
+    <div class="page-content">
+      <div id="datasetListContainer" class="project-grid">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <div>Memuat dataset...</div>
+        </div>
       </div>
     </div>
   </div>
@@ -620,31 +668,32 @@
   <div id="page-buat" class="page">
     <h2>📤 Buat Flashcard</h2>
     <div class="subhead">Buat projek baru, tambahkan pasangan kartu</div>
+    <div class="page-content">
+      <div class="form-group">
+        <label>📌 Nama Projek</label>
+        <input type="text" id="projectName" placeholder="Contoh: Bahasa Inggris Dasar" maxlength="50">
+      </div>
+      <div class="form-group">
+        <label>📝 Deskripsi Projek</label>
+        <textarea id="projectDesc" rows="2" placeholder="Deskripsi singkat..."></textarea>
+      </div>
 
-    <div class="form-group">
-      <label>📌 Nama Projek</label>
-      <input type="text" id="projectName" placeholder="Contoh: Bahasa Inggris Dasar" maxlength="50">
-    </div>
-    <div class="form-group">
-      <label>📝 Deskripsi Projek</label>
-      <textarea id="projectDesc" rows="2" placeholder="Deskripsi singkat..."></textarea>
-    </div>
+      <div class="card-pairs-section">
+        <label style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <span>🃏 Pasangan Kartu</span>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn btn-success btn-sm" id="loadFromDatasetBtn" type="button">📥 Muat dari Sumber Data</button>
+            <button class="btn btn-outline btn-sm" id="addPairBtn" type="button">+ Tambah</button>
+          </div>
+        </label>
+        <div id="pairsContainer" style="margin-top: 16px;"></div>
+      </div>
 
-    <div class="card-pairs-section">
-      <label style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-        <span>🃏 Pasangan Kartu</span>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn btn-success btn-sm" id="loadFromDatasetBtn" type="button">📥 Muat dari Sumber Data</button>
-          <button class="btn btn-outline btn-sm" id="addPairBtn" type="button">+ Tambah</button>
-        </div>
-      </label>
-      <div id="pairsContainer" style="margin-top: 16px;"></div>
+      <button class="btn btn-primary" id="saveProjectBtn" style="width: 100%; justify-content: center; padding: 16px;">💾 Simpan Projek</button>
     </div>
-
-    <button class="btn btn-primary" id="saveProjectBtn" style="width: 100%; justify-content: center; padding: 16px;">💾 Simpan Projek</button>
   </div>
 
-  <div class="footer-note">Flashcard v0.4 · localstorage · sumber data eksternal</div>
+  <div class="footer-note">Flashcard v0.4.1 · localstorage · sumber data eksternal</div>
 </div>
 
 <!-- Game Overlay -->
@@ -729,8 +778,8 @@
   // STATE
   // ----------------------------------------------------------------------
   let projects = loadProjects();
-  let catalog = [];          // katalog dataset dari data/index.json
-  let datasetCache = {};     // cache isi dataset: { id: {...} }
+  let catalog = [];
+  let datasetCache = {};
   let activeCategory = 'Semua';
 
   let activeGame = {
@@ -843,7 +892,7 @@
   }
 
   // ----------------------------------------------------------------------
-  // SUMBER DATA (fetch dari data/index.json)
+  // SUMBER DATA
   // ----------------------------------------------------------------------
   async function loadCatalog() {
     try {
@@ -1028,7 +1077,7 @@
   }
 
   // ----------------------------------------------------------------------
-  // MODAL: pilih dataset untuk dimuat ke form
+  // MODAL
   // ----------------------------------------------------------------------
   function openDatasetModal() {
     if (catalog.length === 0) {
@@ -1060,20 +1109,17 @@
     try {
       const data = await fetchDataset(id);
       const meta = catalog.find(d => d.id === id);
-      // Isi form
       if (!projectNameInput.value.trim()) {
         projectNameInput.value = data.name || meta.name || '';
       }
       if (!projectDescInput.value.trim()) {
         projectDescInput.value = data.description || meta.description || '';
       }
-      // Isi pasangan
       clearPairs();
       (data.pairs || []).forEach(p => addPairRow(p.question, p.answer));
       if ((data.pairs || []).length === 0) addPairRow('', '');
 
       closeDatasetModal();
-      // Scroll ke area pasangan
       pairsContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } catch (err) {
       alert('Gagal memuat dataset: ' + err.message);
@@ -1221,7 +1267,6 @@
     if (e.target === datasetModal) closeDatasetModal();
   });
 
-  // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
     if (datasetModal.classList.contains('active') && e.code === 'Escape') {
       closeDatasetModal();
@@ -1240,7 +1285,6 @@
     }
   });
 
-  // Inisialisasi
   window.addEventListener('DOMContentLoaded', () => {
     resetForm();
     renderPustaka();
