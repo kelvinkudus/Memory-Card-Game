@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flashcard · Pustaka & Buat v0.2</title>
+  <title>Flashcard · Pustaka & Buat v0.3</title>
   <style>
     * {
       box-sizing: border-box;
@@ -191,18 +191,6 @@
 
     .btn-danger:hover { background: #ffe0e0; }
 
-    .btn-god {
-      background: #ffd966;
-      color: #2e2a1f;
-      border: 1px solid #e6b800;
-    }
-
-    .btn-hard {
-      background: #ffd9b3;
-      color: #7a3e00;
-      border: 1px solid #f0b27a;
-    }
-
     .btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
@@ -335,19 +323,19 @@
       gap: 12px;
     }
 
-    .lives {
-      display: flex;
-      gap: 6px;
-      font-size: 1.6rem;
-      align-items: center;
+    .game-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1f2a4a;
+      max-width: 60%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .heart { color: #e63946; }
-    .heart-lost { color: #d5d5d5; }
-
-    .timer-badge {
-      background: #1f2a4a;
-      color: white;
+    .progress-badge {
+      background: #eef2fc;
+      color: #2d3a5e;
       padding: 6px 16px;
       border-radius: 40px;
       font-weight: 600;
@@ -356,11 +344,11 @@
     }
 
     /* ============================================
-       FLIP CARD ANIMATION (NEW in v0.2)
+       FLIP CARD ANIMATION
        ============================================ */
     .flashcard-scene {
       width: 100%;
-      height: 240px;
+      height: 260px;
       perspective: 1400px;
       margin-bottom: 24px;
     }
@@ -434,25 +422,11 @@
       justify-content: center;
     }
 
-    .btn-close {
-      background: #f0f3fa;
-      border-radius: 40px;
-      padding: 10px 24px;
-    }
-
     .small-note {
       text-align: center;
       margin-top: 18px;
       font-size: 0.85rem;
       color: #6f7d9e;
-    }
-
-    .god-mode-badge {
-      background: #ffd966;
-      color: #2e2a1f;
-      padding: 6px 16px;
-      border-radius: 40px;
-      font-weight: 700;
     }
 
     .footer-note {
@@ -462,9 +436,9 @@
       color: #a2aec9;
     }
 
-    /* Responsive: kecilkan kartu di mobile */
+    /* Responsive */
     @media (max-width: 480px) {
-      .flashcard-scene { height: 200px; }
+      .flashcard-scene { height: 210px; }
       .flashcard-face { font-size: 1.4rem; padding: 18px; }
       .game-container { padding: 22px; }
     }
@@ -510,19 +484,18 @@
     <button class="btn btn-primary" id="saveProjectBtn" style="width: 100%; justify-content: center; padding: 16px;">💾 Simpan Projek</button>
   </div>
 
-  <div class="footer-note">Flashcard v0.2 · localstorage · animasi flip 3D</div>
+  <div class="footer-note">Flashcard v0.3 · localstorage · animasi flip 3D</div>
 </div>
 
 <!-- Game Overlay -->
 <div id="gameOverlay" class="game-overlay">
   <div class="game-container">
     <div class="game-header">
-      <div id="gameModeLabel" class="badge" style="font-size: 1rem;">Mode Normal</div>
-      <div id="livesContainer" class="lives"></div>
-      <div id="timerContainer" class="timer-badge">⏳ 00:00</div>
+      <div id="gameTitle" class="game-title">—</div>
+      <div id="progressBadge" class="progress-badge">1 / 1</div>
     </div>
 
-    <!-- ===== FLIP CARD SCENE (v0.2) ===== -->
+    <!-- FLIP CARD SCENE -->
     <div class="flashcard-scene" id="flashcardScene">
       <div class="flashcard-inner" id="flashcardInner">
         <div class="flashcard-face flashcard-front">
@@ -537,8 +510,9 @@
     </div>
 
     <div class="game-actions">
-      <button class="btn btn-outline" id="flipCardBtn">🔄 Balik Kartu</button>
-      <button class="btn btn-primary" id="nextCardBtn">⏩ Lanjut</button>
+      <button class="btn btn-outline" id="prevCardBtn">⏪ Sebelumnya</button>
+      <button class="btn btn-outline" id="flipCardBtn">🔄 Balik</button>
+      <button class="btn btn-primary" id="nextCardBtn">Lanjut ⏩</button>
       <button class="btn btn-danger" id="closeGameBtn">✖ Keluar</button>
     </div>
     <div id="gameMessage" class="small-note"></div>
@@ -550,19 +524,19 @@
   // KONSTANTA & UTIL
   // ----------------------------------------------------------------------
   const STORAGE_KEY = 'flashcard_projects_v1';
-  const HEART_REFILL_INTERVAL = 60 * 60 * 1000;
-  const MAX_LIVES = 5;
 
   function loadProjects() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     try {
       const projects = JSON.parse(raw);
+      // v0.3: hapus properti lives/lastRefill jika ada (data lama)
       return projects.map(p => ({
-        ...p,
-        lives: p.lives ?? MAX_LIVES,
-        lastRefill: p.lastRefill ?? Date.now(),
-        pairs: p.pairs || []
+        id: p.id,
+        name: p.name,
+        description: p.description || '',
+        pairs: p.pairs || [],
+        createdAt: p.createdAt || Date.now()
       }));
     } catch (e) {
       return [];
@@ -573,20 +547,6 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
   }
 
-  function refillLivesIfNeeded(project) {
-    if (!project) return project;
-    const now = Date.now();
-    const timePassed = now - (project.lastRefill || now);
-    const heartsToAdd = Math.floor(timePassed / HEART_REFILL_INTERVAL);
-    if (heartsToAdd > 0 && project.lives < MAX_LIVES) {
-      project.lives = Math.min(MAX_LIVES, project.lives + heartsToAdd);
-      project.lastRefill = now - (timePassed % HEART_REFILL_INTERVAL);
-    } else if (project.lives >= MAX_LIVES) {
-      project.lastRefill = now;
-    }
-    return project;
-  }
-
   // ----------------------------------------------------------------------
   // STATE
   // ----------------------------------------------------------------------
@@ -594,15 +554,10 @@
 
   let activeGame = {
     projectId: null,
-    mode: 'normal',
     pairs: [],
     currentIndex: 0,
-    lives: MAX_LIVES,
     flipped: false,
-    timerInterval: null,
-    startTime: null,
-    refillInterval: null,
-    isAnimating: false, // cegah klik saat animasi flip berjalan
+    isAnimating: false,
   };
 
   // ----------------------------------------------------------------------
@@ -620,15 +575,14 @@
   const saveProjectBtn = document.getElementById('saveProjectBtn');
 
   const gameOverlay = document.getElementById('gameOverlay');
-  const gameModeLabel = document.getElementById('gameModeLabel');
-  const livesContainer = document.getElementById('livesContainer');
-  const timerContainer = document.getElementById('timerContainer');
+  const gameTitle = document.getElementById('gameTitle');
+  const progressBadge = document.getElementById('progressBadge');
   const flipCardBtn = document.getElementById('flipCardBtn');
+  const prevCardBtn = document.getElementById('prevCardBtn');
   const nextCardBtn = document.getElementById('nextCardBtn');
   const closeGameBtn = document.getElementById('closeGameBtn');
   const gameMessage = document.getElementById('gameMessage');
 
-  // Elemen flip card
   const flashcardInner = document.getElementById('flashcardInner');
   const cardFrontText = document.getElementById('cardFrontText');
   const cardBackText = document.getElementById('cardBackText');
@@ -651,33 +605,17 @@
 
     let html = '';
     projects.forEach(project => {
-      const refreshed = refillLivesIfNeeded(project);
-      if (refreshed.lives !== project.lives) {
-        const idx = projects.findIndex(p => p.id === project.id);
-        if (idx !== -1) projects[idx].lives = refreshed.lives;
-        saveProjects(projects);
-      }
-
       const totalPairs = project.pairs ? project.pairs.length : 0;
-      const livesDisplay = (project.lives !== undefined && project.lives < MAX_LIVES)
-        ? `<span class="badge" style="background:#ffe6e6; color:#b33a3a;">❤️ ${project.lives}/${MAX_LIVES}</span>`
-        : '';
-
       html += `
         <div class="project-card" data-project-id="${project.id}">
           <div class="project-info">
-            <div class="project-title">
-              ${escapeHtml(project.name)}
-              ${livesDisplay}
-            </div>
+            <div class="project-title">${escapeHtml(project.name)}</div>
             <div class="project-desc">
               ${escapeHtml(project.description || 'Tanpa deskripsi')} · ${totalPairs} kartu
             </div>
           </div>
           <div class="project-actions">
-            <button class="btn btn-outline btn-sm play-normal" data-id="${project.id}">▶ Mulai</button>
-            <button class="btn btn-god btn-sm play-god" data-id="${project.id}">⚡ God</button>
-            <button class="btn btn-hard btn-sm play-hard" data-id="${project.id}">💔 Sulit</button>
+            <button class="btn btn-outline btn-sm play-project" data-id="${project.id}">▶ Mulai</button>
             <button class="btn btn-danger btn-sm delete-project" data-id="${project.id}">🗑 Hapus</button>
           </div>
         </div>
@@ -686,22 +624,10 @@
 
     projectListContainer.innerHTML = html;
 
-    document.querySelectorAll('.play-normal').forEach(btn => {
+    document.querySelectorAll('.play-project').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        startGame(btn.dataset.id, 'normal');
-      });
-    });
-    document.querySelectorAll('.play-god').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        startGame(btn.dataset.id, 'god');
-      });
-    });
-    document.querySelectorAll('.play-hard').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        startGame(btn.dataset.id, 'hard');
+        startGame(btn.dataset.id);
       });
     });
     document.querySelectorAll('.delete-project').forEach(btn => {
@@ -770,9 +696,9 @@
 
     const newProject = {
       id: 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-      name, description: desc, pairs,
-      lives: MAX_LIVES,
-      lastRefill: Date.now(),
+      name,
+      description: desc,
+      pairs,
       createdAt: Date.now()
     };
 
@@ -784,135 +710,64 @@
   }
 
   // ----------------------------------------------------------------------
-  // GAME LOGIC
+  // GAME LOGIC (v0.3 - hanya Normal mode)
   // ----------------------------------------------------------------------
-  function startGame(projectId, mode) {
+  function startGame(projectId) {
     const project = projects.find(p => p.id === projectId);
     if (!project) return;
-
-    refillLivesIfNeeded(project);
-    saveProjects(projects);
-
-    if (mode === 'hard' && project.lives <= 0) {
-      alert('Nyawa habis! Tunggu 1 jam untuk mengisi 1 nyawa. Atau gunakan mode lain.');
+    if (!project.pairs || project.pairs.length === 0) {
+      alert('Projek ini tidak memiliki kartu.');
       return;
     }
 
     activeGame.projectId = projectId;
-    activeGame.mode = mode;
     activeGame.pairs = [...project.pairs];
     activeGame.currentIndex = 0;
     activeGame.flipped = false;
     activeGame.isAnimating = false;
 
-    if (mode === 'hard') {
-      activeGame.lives = project.lives;
-    } else {
-      activeGame.lives = MAX_LIVES;
-    }
-
-    // Reset posisi flip card ke depan (tanpa animasi)
+    // Reset kartu ke posisi depan tanpa animasi
     flashcardInner.style.transition = 'none';
     flashcardInner.classList.remove('flipped');
-    // paksa reflow
     void flashcardInner.offsetWidth;
     flashcardInner.style.transition = '';
 
+    // Set judul game
+    gameTitle.textContent = project.name;
+
     updateGameUI();
     gameOverlay.classList.add('active');
-
-    if (activeGame.timerInterval) clearInterval(activeGame.timerInterval);
-    activeGame.startTime = Date.now();
-    timerContainer.textContent = '⏳ 00:00';
-    activeGame.timerInterval = setInterval(() => {
-      if (!activeGame.startTime) return;
-      const elapsed = Math.floor((Date.now() - activeGame.startTime) / 1000);
-      const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
-      const secs = String(elapsed % 60).padStart(2, '0');
-      timerContainer.textContent = `⏳ ${mins}:${secs}`;
-    }, 1000);
-
-    if (activeGame.refillInterval) clearInterval(activeGame.refillInterval);
-    if (mode === 'hard') {
-      activeGame.refillInterval = setInterval(() => {
-        const proj = projects.find(p => p.id === activeGame.projectId);
-        if (proj) {
-          const before = proj.lives;
-          refillLivesIfNeeded(proj);
-          if (proj.lives !== before) {
-            activeGame.lives = proj.lives;
-            saveProjects(projects);
-            updateGameUI();
-          }
-        }
-      }, 30000);
-    }
   }
 
-  // Update tampilan dalam game (isi teks kartu, header, dsb.)
   function updateGameUI() {
-    const project = projects.find(p => p.id === activeGame.projectId);
-    if (!project) return;
-
-    let modeText = '';
-    if (activeGame.mode === 'god') modeText = '⚡ Mode God (tanpa nyawa)';
-    else if (activeGame.mode === 'hard') modeText = '💔 Mode Sulit (5 nyawa)';
-    else modeText = '📘 Mode Normal';
-    gameModeLabel.textContent = modeText;
-
-    if (activeGame.mode === 'hard') {
-      let heartsHtml = '';
-      for (let i = 0; i < MAX_LIVES; i++) {
-        heartsHtml += i < activeGame.lives ? '<span class="heart">❤️</span>' : '<span class="heart-lost">❤️</span>';
-      }
-      livesContainer.innerHTML = heartsHtml;
-      livesContainer.style.display = 'flex';
-      livesContainer.style.fontSize = '';
-      livesContainer.style.color = '';
-    } else {
-      livesContainer.innerHTML = '∞';
-      livesContainer.style.display = 'flex';
-      livesContainer.style.fontSize = '1.8rem';
-      livesContainer.style.color = '#2d3a5e';
-    }
+    // Update progress
+    progressBadge.textContent = `${activeGame.currentIndex + 1} / ${activeGame.pairs.length}`;
 
     // Isi teks kartu
-    if (activeGame.pairs.length === 0) {
-      cardFrontText.textContent = 'Tidak ada kartu';
-      cardBackText.textContent = '—';
+    const pair = activeGame.pairs[activeGame.currentIndex];
+    if (pair) {
+      cardFrontText.textContent = pair.question;
+      cardBackText.textContent = pair.answer;
     } else {
-      const pair = activeGame.pairs[activeGame.currentIndex];
-      if (!pair) {
-        cardFrontText.textContent = 'Selesai!';
-        cardBackText.textContent = '🎉';
-      } else {
-        cardFrontText.textContent = pair.question;
-        cardBackText.textContent = pair.answer;
-      }
+      cardFrontText.textContent = 'Selesai!';
+      cardBackText.textContent = '🎉';
     }
 
-    // Sinkronkan class flipped dengan state
+    // Sinkronkan flip
     if (activeGame.flipped) {
       flashcardInner.classList.add('flipped');
     } else {
       flashcardInner.classList.remove('flipped');
     }
 
-    if (activeGame.mode === 'hard' && activeGame.lives <= 0) {
-      gameMessage.textContent = '⚠️ Nyawa habis! Tunggu 1 jam untuk mengisi 1 nyawa.';
-    } else {
-      gameMessage.textContent = `Kartu ${activeGame.currentIndex + 1} / ${activeGame.pairs.length}`;
-    }
+    // Pesan bawah
+    gameMessage.textContent = `Kartu ${activeGame.currentIndex + 1} dari ${activeGame.pairs.length}`;
 
-    // Aktif/nonaktif tombol next
-    if (activeGame.mode === 'hard' && activeGame.lives <= 0) {
-      nextCardBtn.disabled = true;
-    } else {
-      nextCardBtn.disabled = false;
-    }
+    // Tombol prev/next
+    prevCardBtn.disabled = activeGame.currentIndex === 0;
+    nextCardBtn.disabled = activeGame.currentIndex >= activeGame.pairs.length - 1;
   }
 
-  // Flip card dengan animasi
   function flipCard() {
     if (activeGame.pairs.length === 0) return;
     if (activeGame.isAnimating) return;
@@ -920,89 +775,50 @@
     activeGame.isAnimating = true;
     activeGame.flipped = !activeGame.flipped;
 
-    // Toggle class flipped → CSS transition akan menganimasikan
     if (activeGame.flipped) {
       flashcardInner.classList.add('flipped');
     } else {
       flashcardInner.classList.remove('flipped');
     }
 
-    // Tunggu animasi selesai (650ms) baru izinkan interaksi lagi
-    setTimeout(() => {
-      activeGame.isAnimating = false;
-    }, 650);
+    setTimeout(() => { activeGame.isAnimating = false; }, 650);
   }
 
-  function nextCard() {
-    const project = projects.find(p => p.id === activeGame.projectId);
-    if (!project) return;
+  // Fungsi umum untuk pindah ke kartu lain dengan animasi halus
+  function goToCard(newIndex) {
+    if (newIndex < 0 || newIndex >= activeGame.pairs.length) return;
+    if (newIndex === activeGame.currentIndex) return;
 
-    if (activeGame.mode === 'hard' && activeGame.lives <= 0) {
-      gameMessage.textContent = '❌ Nyawa habis! Tidak bisa lanjut.';
-      updateGameUI();
-      return;
-    }
-
-    if (activeGame.currentIndex + 1 >= activeGame.pairs.length) {
-      gameMessage.textContent = '🎉 Selamat! Kamu menyelesaikan semua kartu.';
-      cardFrontText.textContent = '✅ Selesai!';
-      cardBackText.textContent = '🎉 Hebat!';
-      // Pastikan kartu kembali ke depan dengan animasi
-      activeGame.flipped = false;
-      flashcardInner.classList.remove('flipped');
-      nextCardBtn.disabled = true;
-      return;
-    }
-
-    activeGame.currentIndex++;
-    // Reset ke depan dulu (dengan animasi flip balik)
+    // Jika kartu sedang terbalik, balik dulu dengan animasi
     if (activeGame.flipped) {
       activeGame.flipped = false;
       flashcardInner.classList.remove('flipped');
-      // beri delay singkat agar animasi flip balik terlihat sebelum ganti teks
       setTimeout(() => {
-        applyNextCardAndLives();
+        activeGame.currentIndex = newIndex;
+        activeGame.flipped = false;
+        // Karena class sudah dilepas, langsung render teks baru
+        updateGameUI();
       }, 350);
     } else {
-      applyNextCardAndLives();
+      activeGame.currentIndex = newIndex;
+      activeGame.flipped = false;
+      updateGameUI();
     }
   }
 
-  function applyNextCardAndLives() {
-    // Mode sulit: kurangi nyawa
-    if (activeGame.mode === 'hard') {
-      if (activeGame.lives > 0) {
-        activeGame.lives--;
-        const proj = projects.find(p => p.id === activeGame.projectId);
-        if (proj) {
-          proj.lives = activeGame.lives;
-          if (proj.lives === MAX_LIVES - 1 && !proj.lastRefill) {
-            proj.lastRefill = Date.now();
-          }
-          saveProjects(projects);
-        }
-      }
-      if (activeGame.lives <= 0) {
-        updateGameUI(); // akan menonaktifkan next
-        return;
-      }
+  function nextCard() {
+    if (activeGame.currentIndex < activeGame.pairs.length - 1) {
+      goToCard(activeGame.currentIndex + 1);
     }
+  }
 
-    updateGameUI();
+  function prevCard() {
+    if (activeGame.currentIndex > 0) {
+      goToCard(activeGame.currentIndex - 1);
+    }
   }
 
   function closeGame() {
-    if (activeGame.timerInterval) clearInterval(activeGame.timerInterval);
-    if (activeGame.refillInterval) clearInterval(activeGame.refillInterval);
-    activeGame.timerInterval = null;
-    activeGame.refillInterval = null;
-
-    const proj = projects.find(p => p.id === activeGame.projectId);
-    if (proj) {
-      refillLivesIfNeeded(proj);
-      saveProjects(projects);
-    }
-
     gameOverlay.classList.remove('active');
     activeGame.projectId = null;
     activeGame.pairs = [];
@@ -1010,8 +826,6 @@
     activeGame.flipped = false;
     activeGame.isAnimating = false;
     flashcardInner.classList.remove('flipped');
-    nextCardBtn.disabled = false;
-    renderPustaka();
   }
 
   // ----------------------------------------------------------------------
@@ -1035,31 +849,31 @@
 
   flipCardBtn.addEventListener('click', flipCard);
   nextCardBtn.addEventListener('click', nextCard);
+  prevCardBtn.addEventListener('click', prevCard);
   closeGameBtn.addEventListener('click', closeGame);
 
   // Klik kartu untuk flip
   document.getElementById('flashcardScene').addEventListener('click', flipCard);
 
+  // Keyboard shortcut: Spasi = flip, panah kiri/kanan = navigasi, Esc = keluar
+  document.addEventListener('keydown', (e) => {
+    if (!gameOverlay.classList.contains('active')) return;
+    if (e.code === 'Space') {
+      e.preventDefault();
+      flipCard();
+    } else if (e.code === 'ArrowRight') {
+      nextCard();
+    } else if (e.code === 'ArrowLeft') {
+      prevCard();
+    } else if (e.code === 'Escape') {
+      closeGame();
+    }
+  });
+
   // Inisialisasi
   window.addEventListener('DOMContentLoaded', () => {
-    projects = projects.map(p => refillLivesIfNeeded(p));
-    saveProjects(projects);
     resetForm();
     renderPustaka();
-
-    // Auto-refill nyawa tiap menit
-    setInterval(() => {
-      let changed = false;
-      projects.forEach(p => {
-        const before = p.lives;
-        refillLivesIfNeeded(p);
-        if (p.lives !== before) changed = true;
-      });
-      if (changed) {
-        saveProjects(projects);
-        if (pagePustaka.classList.contains('active')) renderPustaka();
-      }
-    }, 60000);
   });
 </script>
 </body>
