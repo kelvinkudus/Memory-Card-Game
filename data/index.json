@@ -1,0 +1,58 @@
+{
+  "datasets": [
+    {
+      "id": "ibukota-dunia",
+      "name": "Ibu Kota Negara Dunia",
+      "description": "Ibu kota dari negara-negara di seluruh dunia",
+      "category": "Geografi",
+      "icon": "🌍",
+      "file": "ibukota-dunia.json",
+      "count": 60
+    },
+    {
+      "id": "ibukota-indonesia",
+      "name": "Ibu Kota Provinsi Indonesia",
+      "description": "38 ibu kota provinsi di Indonesia",
+      "category": "Geografi",
+      "icon": "🇮🇩",
+      "file": "ibukota-indonesia.json",
+      "count": 38
+    },
+    {
+      "id": "negara-asia",
+      "name": "Negara di Asia",
+      "description": "Nama-nama negara di benua Asia",
+      "category": "Geografi",
+      "icon": "🌏",
+      "file": "negara-asia.json",
+      "count": 48
+    },
+    {
+      "id": "negara-eropa",
+      "name": "Negara di Eropa",
+      "description": "Nama-nama negara di benua Eropa",
+      "category": "Geografi",
+      "icon": "🏰",
+      "file": "negara-eropa.json",
+      "count": 44
+    },
+    {
+      "id": "negara-afrika",
+      "name": "Negara di Afrika",
+      "description": "Nama-nama negara di benua Afrika",
+      "category": "Geografi",
+      "icon": "🦁",
+      "file": "negara-afrika.json",
+      "count": 54
+    },
+    {
+      "id": "planet-tata-surya",
+      "name": "Planet Tata Surya",
+      "description": "8 planet beserta ciri khasnya",
+      "category": "Astronomi",
+      "icon": "🪐",
+      "file": "planet-tata-surya.json",
+      "count": 8
+    }
+  ]
+}
