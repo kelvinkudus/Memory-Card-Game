@@ -1,0 +1,21 @@
+{
+  "id": "planet-tata-surya",
+  "name": "Planet Tata Surya",
+  "description": "8 planet beserta ciri khasnya",
+  "pairs": [
+    { "question": "Planet terdekat dengan Matahari", "answer": "Merkurius" },
+    { "question": "Planet terpanas di Tata Surya", "answer": "Venus" },
+    { "question": "Planet tempat kita tinggal", "answer": "Bumi" },
+    { "question": "Planet yang dijuluki 'Planet Merah'", "answer": "Mars" },
+    { "question": "Planet terbesar di Tata Surya", "answer": "Jupiter" },
+    { "question": "Planet yang terkenal dengan cincinnya", "answer": "Saturnus" },
+    { "question": "Planet yang berputar miring / 'rebahan'", "answer": "Uranus" },
+    { "question": "Planet terjauh dari Matahari", "answer": "Neptunus" },
+    { "question": "Planet terkecil di Tata Surya", "answer": "Merkurius" },
+    { "question": "Planet dengan satelit terbesar bernama Titan", "answer": "Saturnus" },
+    { "question": "Planet yang memiliki satelit bernama Bulan", "answer": "Bumi" },
+    { "question": "Planet dengan dua satelit yaitu Phobos dan Deimos", "answer": "Mars" },
+    { "question": "Planet dengan badai raksasa bernama Bintik Merah Besar", "answer": "Jupiter" },
+    { "question": "Planet yang tidak lagi disebut planet sejak 2006", "answer": "Pluto (planet kerdil)" }
+  ]
+}
