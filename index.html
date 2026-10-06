@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flashcard · Pustaka & Buat v0.5</title>
+  <title>Flashcard · Pustaka & Buat v0.6</title>
   <style>
     * {
       box-sizing: border-box;
@@ -45,9 +45,7 @@
       outline-offset: 2px;
     }
 
-    /* ============================================
-       LAYOUT
-       ============================================ */
+    /* LAYOUT */
     html, body { height: 100%; }
 
     body {
@@ -208,6 +206,11 @@
       color: #2e7d32;
     }
 
+    .badge-editing {
+      background: #fff3cd;
+      color: #856404;
+    }
+
     .project-actions {
       display: flex;
       gap: 10px;
@@ -265,6 +268,14 @@
     }
 
     .btn-success:hover { background: #c8ebcc; }
+
+    .btn-warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffd966;
+    }
+
+    .btn-warning:hover { background: #ffecb3; }
 
     .btn:disabled {
       opacity: 0.5;
@@ -367,9 +378,7 @@
       margin-bottom: 16px;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* Kategori */
     .category-filters {
@@ -399,9 +408,32 @@
       border-color: #2d3a5e;
     }
 
-    /* ============================================
-       GAME OVERLAY
-       ============================================ */
+    /* Banner edit mode */
+    .edit-banner {
+      background: linear-gradient(135deg, #fff3cd, #ffe6a8);
+      border: 1px solid #ffd966;
+      border-radius: 20px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .edit-banner.show { display: flex; }
+
+    .edit-banner-text {
+      font-weight: 700;
+      color: #856404;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* GAME OVERLAY */
     .game-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -442,7 +474,6 @@
       to { transform: scale(1); opacity: 1; }
     }
 
-    /* Header game — 2 baris */
     .game-header-top {
       display: flex;
       justify-content: space-between;
@@ -652,7 +683,7 @@
       flex-shrink: 0;
     }
 
-    /* Modal pilih dataset */
+    /* Modal */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -749,6 +780,8 @@
       .game-header-controls { padding: 8px 10px; gap: 6px; }
       .tts-btn { padding: 6px 10px; font-size: 0.78rem; }
       .tts-select { font-size: 0.75rem; padding: 6px 8px; max-width: 110px; }
+      .project-actions { width: 100%; }
+      .project-actions .btn { flex: 1; justify-content: center; }
     }
   </style>
 </head>
@@ -787,9 +820,18 @@
 
   <!-- Halaman Buat -->
   <div id="page-buat" class="page">
-    <h2>📤 Buat Flashcard</h2>
-    <div class="subhead">Buat projek baru, tambahkan pasangan kartu</div>
+    <h2 id="buatPageTitle">📤 Buat Flashcard</h2>
+    <div class="subhead" id="buatPageSubhead">Buat projek baru, tambahkan pasangan kartu</div>
+
     <div class="page-content">
+      <!-- Banner Edit Mode -->
+      <div class="edit-banner" id="editBanner">
+        <div class="edit-banner-text">
+          ✏️ Sedang mengedit: <strong id="editProjectName">—</strong>
+        </div>
+        <button class="btn btn-outline btn-sm" id="cancelEditBtn" type="button">✖ Batal</button>
+      </div>
+
       <div class="form-group">
         <label>📌 Nama Projek</label>
         <input type="text" id="projectName" placeholder="Contoh: Bahasa Inggris Dasar" maxlength="50">
@@ -803,18 +845,22 @@
         <label style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
           <span>🃏 Pasangan Kartu</span>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button class="btn btn-success btn-sm" id="loadFromDatasetBtn" type="button">📥 Muat dari Sumber Data</button>
+            <button class="btn btn-outline btn-sm" id="uploadJsonBtn" type="button">📤 Upload JSON</button>
+            <button class="btn btn-success btn-sm" id="loadFromDatasetBtn" type="button">📥 Dari Sumber Data</button>
             <button class="btn btn-outline btn-sm" id="addPairBtn" type="button">+ Tambah</button>
           </div>
         </label>
+        <input type="file" id="jsonFileInput" accept=".json,application/json" style="display:none;">
         <div id="pairsContainer" style="margin-top: 16px;"></div>
       </div>
 
-      <button class="btn btn-primary" id="saveProjectBtn" style="width: 100%; justify-content: center; padding: 16px;">💾 Simpan Projek</button>
+      <button class="btn btn-primary" id="saveProjectBtn" style="width: 100%; justify-content: center; padding: 16px;">
+        💾 Simpan Projek
+      </button>
     </div>
   </div>
 
-  <div class="footer-note">Flashcard v0.5 · localstorage · sumber data eksternal · text-to-speech</div>
+  <div class="footer-note">Flashcard v0.6 · localstorage · edit · shuffle · upload json</div>
 </div>
 
 <!-- Game Overlay -->
@@ -825,10 +871,10 @@
       <div id="progressBadge" class="progress-badge">1 / 1</div>
     </div>
 
-    <!-- Kontrol TTS -->
     <div class="game-header-controls">
       <button class="tts-btn" id="ttsSpeakBtn" title="Bacakan teks yang tampil">🔊 Baca</button>
       <button class="tts-btn" id="ttsAutoBtn" title="Auto-baca setiap ganti kartu / balik">🔈 Auto</button>
+      <button class="tts-btn" id="shuffleBtn" title="Acak urutan kartu">🔀 Shuffle</button>
       <div class="tts-control">
         <span>🐢</span>
         <select class="tts-select" id="ttsRateSelect" title="Kecepatan bicara">
@@ -917,6 +963,15 @@
     return div.innerHTML;
   }
 
+  function shuffleArray(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
   // ======================================================================
   // TTS SETTINGS
   // ======================================================================
@@ -924,9 +979,8 @@
     const raw = localStorage.getItem(TTS_SETTINGS_KEY);
     const defaults = { auto: false, rate: 1, voiceName: '' };
     if (!raw) return defaults;
-    try {
-      return { ...defaults, ...JSON.parse(raw) };
-    } catch (e) { return defaults; }
+    try { return { ...defaults, ...JSON.parse(raw) }; }
+    catch (e) { return defaults; }
   }
 
   function saveTtsSettings(s) {
@@ -943,10 +997,15 @@
   let datasetCache = {};
   let activeCategory = 'Semua';
 
+  // Edit mode
+  let editingProjectId = null;
+
   let activeGame = {
     projectId: null,
     title: '',
     pairs: [],
+    originalPairs: [],   // simpan urutan asli untuk "unshuffle"
+    isShuffled: false,
     currentIndex: 0,
     flipped: false,
     isAnimating: false,
@@ -964,11 +1023,19 @@
   const categoryFilters = document.getElementById('categoryFilters');
   const datasetListContainer = document.getElementById('datasetListContainer');
 
+  const buatPageTitle = document.getElementById('buatPageTitle');
+  const buatPageSubhead = document.getElementById('buatPageSubhead');
+  const editBanner = document.getElementById('editBanner');
+  const editProjectName = document.getElementById('editProjectName');
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
+
   const projectNameInput = document.getElementById('projectName');
   const projectDescInput = document.getElementById('projectDesc');
   const pairsContainer = document.getElementById('pairsContainer');
   const addPairBtn = document.getElementById('addPairBtn');
   const loadFromDatasetBtn = document.getElementById('loadFromDatasetBtn');
+  const uploadJsonBtn = document.getElementById('uploadJsonBtn');
+  const jsonFileInput = document.getElementById('jsonFileInput');
   const saveProjectBtn = document.getElementById('saveProjectBtn');
 
   const gameOverlay = document.getElementById('gameOverlay');
@@ -989,6 +1056,7 @@
   const ttsRateSelect = document.getElementById('ttsRateSelect');
   const ttsVoiceSelect = document.getElementById('ttsVoiceSelect');
   const ttsWarning = document.getElementById('ttsWarning');
+  const shuffleBtn = document.getElementById('shuffleBtn');
 
   const datasetModal = document.getElementById('datasetModal');
   const modalList = document.getElementById('modalList');
@@ -1003,7 +1071,6 @@
   function loadVoices() {
     if (!ttsSupported) return;
     voices = window.speechSynthesis.getVoices();
-    // Urutkan: id-ID dulu, lalu lainnya
     voices.sort((a, b) => {
       const aId = a.lang.toLowerCase().startsWith('id');
       const bId = b.lang.toLowerCase().startsWith('id');
@@ -1012,7 +1079,6 @@
       return a.name.localeCompare(b.name);
     });
 
-    // Isi dropdown
     const currentVal = ttsSettings.voiceName;
     ttsVoiceSelect.innerHTML = '<option value="">Default (Indonesia)</option>' +
       voices.map(v => {
@@ -1020,7 +1086,6 @@
         return `<option value="${escapeHtml(v.name)}">${escapeHtml(label)}</option>`;
       }).join('');
 
-    // Restore pilihan
     if (currentVal && voices.some(v => v.name === currentVal)) {
       ttsVoiceSelect.value = currentVal;
     } else {
@@ -1032,7 +1097,6 @@
 
   function speak(text) {
     if (!ttsSupported || !text) return;
-    // Batalkan yang sedang berjalan
     window.speechSynthesis.cancel();
 
     const utter = new SpeechSynthesisUtterance(text);
@@ -1041,20 +1105,12 @@
     utter.pitch = 1;
     utter.volume = 1;
 
-    // Pilih voice
     if (ttsSettings.voiceName) {
       const v = voices.find(x => x.name === ttsSettings.voiceName);
-      if (v) {
-        utter.voice = v;
-        utter.lang = v.lang;
-      }
+      if (v) { utter.voice = v; utter.lang = v.lang; }
     } else {
-      // Cari voice Indonesia default
       const idVoice = voices.find(v => v.lang.toLowerCase().startsWith('id'));
-      if (idVoice) {
-        utter.voice = idVoice;
-        utter.lang = idVoice.lang;
-      }
+      if (idVoice) { utter.voice = idVoice; utter.lang = idVoice.lang; }
     }
 
     window.speechSynthesis.speak(utter);
@@ -1064,7 +1120,6 @@
     if (ttsSupported) window.speechSynthesis.cancel();
   }
 
-  // Teks yang sedang tampil di kartu (tergantung flipped)
   function getCurrentVisibleText() {
     if (activeGame.pairs.length === 0) return '';
     const pair = activeGame.pairs[activeGame.currentIndex];
@@ -1092,19 +1147,24 @@
     let html = '';
     projects.forEach(project => {
       const totalPairs = project.pairs ? project.pairs.length : 0;
+      const isEditing = project.id === editingProjectId;
       const importedBadge = project.imported
         ? `<span class="badge badge-imported">📥 Hasil Impor</span>`
         : '';
+      const editingBadge = isEditing
+        ? `<span class="badge badge-editing">✏️ Sedang Diedit</span>`
+        : '';
       html += `
-        <div class="project-card" data-project-id="${project.id}">
+        <div class="project-card" data-project-id="${project.id}" style="${isEditing ? 'border-color:#ffd966;background:#fffdf5;' : ''}">
           <div class="project-info">
             <div class="project-title">${escapeHtml(project.name)}</div>
             <div class="project-desc">
-              ${escapeHtml(project.description || 'Tanpa deskripsi')} · ${totalPairs} kartu ${importedBadge}
+              ${escapeHtml(project.description || 'Tanpa deskripsi')} · ${totalPairs} kartu ${importedBadge} ${editingBadge}
             </div>
           </div>
           <div class="project-actions">
             <button class="btn btn-outline btn-sm play-project" data-id="${project.id}">▶ Mulai</button>
+            <button class="btn btn-warning btn-sm edit-project" data-id="${project.id}">✏️ Edit</button>
             <button class="btn btn-danger btn-sm delete-project" data-id="${project.id}">🗑 Hapus</button>
           </div>
         </div>
@@ -1120,6 +1180,12 @@
         if (proj) startGame(proj.id, proj.name, proj.pairs);
       });
     });
+    document.querySelectorAll('.edit-project').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        startEditProject(btn.dataset.id);
+      });
+    });
     document.querySelectorAll('.delete-project').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1132,8 +1198,52 @@
     if (!confirm('Yakin ingin menghapus projek ini?')) return;
     projects = projects.filter(p => p.id !== projectId);
     saveProjects(projects);
+    if (editingProjectId === projectId) cancelEdit();
     renderPustaka();
     if (activeGame.projectId === projectId) closeGame();
+  }
+
+  // ======================================================================
+  // EDIT PROJEK
+  // ======================================================================
+  function startEditProject(projectId) {
+    const proj = projects.find(p => p.id === projectId);
+    if (!proj) return;
+
+    editingProjectId = projectId;
+
+    // Isi form
+    projectNameInput.value = proj.name || '';
+    projectDescInput.value = proj.description || '';
+    clearPairs();
+    (proj.pairs || []).forEach(p => addPairRow(p.question, p.answer));
+    if ((proj.pairs || []).length === 0) addPairRow('', '');
+
+    // Update UI
+    buatPageTitle.textContent = '✏️ Edit Flashcard';
+    buatPageSubhead.textContent = 'Ubah data projek, lalu simpan perubahan';
+    editBanner.classList.add('show');
+    editProjectName.textContent = proj.name;
+    saveProjectBtn.textContent = '💾 Simpan Perubahan';
+
+    // Pindah ke halaman Buat
+    switchPage('buat');
+
+    // Scroll ke atas & render ulang pustaka biar badge "Sedang Diedit" muncul
+    renderPustaka();
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
+  }
+
+  function cancelEdit() {
+    editingProjectId = null;
+    resetForm();
+    buatPageTitle.textContent = '📤 Buat Flashcard';
+    buatPageSubhead.textContent = 'Buat projek baru, tambahkan pasangan kartu';
+    editBanner.classList.remove('show');
+    saveProjectBtn.textContent = '💾 Simpan Projek';
+    renderPustaka();
   }
 
   // ======================================================================
@@ -1261,6 +1371,94 @@
   }
 
   // ======================================================================
+  // UPLOAD JSON
+  // ======================================================================
+  function handleJsonUpload(file) {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File terlalu besar (maksimal 5MB).');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target.result);
+
+        // Validasi struktur
+        let pairs = [];
+        let name = '';
+        let description = '';
+
+        // Format 1: { pairs: [...], name, description }
+        if (Array.isArray(json.pairs)) {
+          pairs = json.pairs;
+          name = json.name || '';
+          description = json.description || '';
+        }
+        // Format 2: { datasets: [...] } — katalog
+        else if (Array.isArray(json.datasets)) {
+          alert('❌ File ini adalah katalog (index.json).\nSilakan upload file dataset (yang berisi "pairs"), bukan katalog.');
+          return;
+        }
+        // Format 3: array langsung [...]
+        else if (Array.isArray(json)) {
+          pairs = json;
+        } else {
+          throw new Error('Struktur JSON tidak dikenali. Butuh properti "pairs" atau array objek.');
+        }
+
+        // Validasi tiap pair
+        const validPairs = [];
+        for (let i = 0; i < pairs.length; i++) {
+          const p = pairs[i];
+          if (!p || typeof p !== 'object') continue;
+          const q = (p.question || p.q || '').toString().trim();
+          const a = (p.answer || p.a || '').toString().trim();
+          if (q && a) validPairs.push({ question: q, answer: a });
+        }
+
+        if (validPairs.length === 0) {
+          throw new Error('Tidak ada pasangan kartu yang valid (butuh "question" & "answer").');
+        }
+
+        // Konfirmasi kalau ada data yang sudah diisi
+        const existingRows = pairsContainer.querySelectorAll('.pair-row');
+        const hasData = Array.from(existingRows).some(row => {
+          const q = row.querySelector('.pair-question')?.value.trim();
+          const a = row.querySelector('.pair-answer')?.value.trim();
+          return q || a;
+        });
+
+        if (hasData) {
+          if (!confirm(`Form sudah berisi data. Ganti dengan ${validPairs.length} kartu dari file?`)) {
+            return;
+          }
+        }
+
+        // Isi form
+        if (!projectNameInput.value.trim() && name) {
+          projectNameInput.value = name;
+        }
+        if (!projectDescInput.value.trim() && description) {
+          projectDescInput.value = description;
+        }
+
+        clearPairs();
+        validPairs.forEach(p => addPairRow(p.question, p.answer));
+
+        alert(`✅ Berhasil memuat ${validPairs.length} kartu dari file JSON!`);
+      } catch (err) {
+        alert('❌ Gagal memuat file:\n' + err.message);
+      }
+    };
+    reader.onerror = () => {
+      alert('❌ Gagal membaca file.');
+    };
+    reader.readAsText(file);
+  }
+
+  // ======================================================================
   // FORM BUAT
   // ======================================================================
   function addPairRow(question = '', answer = '') {
@@ -1303,18 +1501,36 @@
       return;
     }
 
-    const newProject = {
-      id: 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-      name, description: desc, pairs,
-      createdAt: Date.now(),
-      imported: false
-    };
-
-    projects.push(newProject);
-    saveProjects(projects);
-    resetForm();
-    switchPage('pustaka');
-    renderPustaka();
+    if (editingProjectId) {
+      // Mode edit: update projek yang ada
+      const idx = projects.findIndex(p => p.id === editingProjectId);
+      if (idx === -1) {
+        alert('Projek yang diedit tidak ditemukan.');
+        cancelEdit();
+        return;
+      }
+      projects[idx].name = name;
+      projects[idx].description = desc;
+      projects[idx].pairs = pairs;
+      // Simpan flag imported yang lama (kalau ada)
+      saveProjects(projects);
+      cancelEdit();
+      switchPage('pustaka');
+      renderPustaka();
+    } else {
+      // Mode buat baru
+      const newProject = {
+        id: 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+        name, description: desc, pairs,
+        createdAt: Date.now(),
+        imported: false
+      };
+      projects.push(newProject);
+      saveProjects(projects);
+      resetForm();
+      switchPage('pustaka');
+      renderPustaka();
+    }
   }
 
   // ======================================================================
@@ -1377,6 +1593,8 @@
     activeGame.projectId = projectId;
     activeGame.title = title;
     activeGame.pairs = [...pairs];
+    activeGame.originalPairs = [...pairs];
+    activeGame.isShuffled = false;
     activeGame.currentIndex = 0;
     activeGame.flipped = false;
     activeGame.isAnimating = false;
@@ -1387,8 +1605,41 @@
     flashcardInner.style.transition = '';
 
     gameTitle.textContent = title;
+    updateShuffleBtn();
     updateGameUI();
     gameOverlay.classList.add('active');
+  }
+
+  function updateShuffleBtn() {
+    shuffleBtn.classList.toggle('active', activeGame.isShuffled);
+    shuffleBtn.textContent = activeGame.isShuffled ? '🔀 Teracak ON' : '🔀 Shuffle';
+  }
+
+  function toggleShuffle() {
+    if (activeGame.pairs.length <= 1) return;
+
+    if (activeGame.isShuffled) {
+      // Kembalikan ke urutan asli
+      activeGame.pairs = [...activeGame.originalPairs];
+      activeGame.isShuffled = false;
+      activeGame.currentIndex = 0;
+      activeGame.flipped = false;
+    } else {
+      // Acak
+      activeGame.pairs = shuffleArray(activeGame.pairs);
+      activeGame.isShuffled = true;
+      activeGame.currentIndex = 0;
+      activeGame.flipped = false;
+    }
+
+    // Reset tampilan kartu (tanpa animasi flip)
+    flashcardInner.style.transition = 'none';
+    flashcardInner.classList.remove('flipped');
+    void flashcardInner.offsetWidth;
+    flashcardInner.style.transition = '';
+
+    updateShuffleBtn();
+    updateGameUI();
   }
 
   function updateGameUI() {
@@ -1414,9 +1665,7 @@
     prevCardBtn.disabled = activeGame.currentIndex === 0;
     nextCardBtn.disabled = activeGame.currentIndex >= activeGame.pairs.length - 1;
 
-    // Auto-baca (kalau aktif)
     if (ttsSettings.auto) {
-      // Delay kecil agar UI update dulu sebelum suara
       setTimeout(() => speak(getCurrentVisibleText()), 120);
     }
   }
@@ -1434,7 +1683,6 @@
       flashcardInner.classList.remove('flipped');
     }
 
-    // Auto-baca setelah flip (tunggu sedikit agar animasi mulai)
     if (ttsSettings.auto) {
       setTimeout(() => speak(getCurrentVisibleText()), 300);
     }
@@ -1478,6 +1726,8 @@
     gameOverlay.classList.remove('active');
     activeGame.projectId = null;
     activeGame.pairs = [];
+    activeGame.originalPairs = [];
+    activeGame.isShuffled = false;
     activeGame.currentIndex = 0;
     activeGame.flipped = false;
     activeGame.isAnimating = false;
@@ -1506,27 +1756,53 @@
   addPairBtn.addEventListener('click', () => addPairRow('', ''));
   loadFromDatasetBtn.addEventListener('click', openDatasetModal);
   saveProjectBtn.addEventListener('click', handleSaveProject);
+  cancelEditBtn.addEventListener('click', cancelEdit);
+
+  // Upload JSON
+  uploadJsonBtn.addEventListener('click', () => jsonFileInput.click());
+  jsonFileInput.addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    handleJsonUpload(file);
+    e.target.value = ''; // reset agar bisa upload file yang sama 2x
+  });
+
+  // Drag & drop JSON ke area pairs
+  pairsContainer.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    pairsContainer.style.background = '#eef3ff';
+  });
+  pairsContainer.addEventListener('dragleave', () => {
+    pairsContainer.style.background = '';
+  });
+  pairsContainer.addEventListener('drop', (e) => {
+    e.preventDefault();
+    pairsContainer.style.background = '';
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) handleJsonUpload(file);
+  });
 
   flipCardBtn.addEventListener('click', flipCard);
   nextCardBtn.addEventListener('click', nextCard);
   prevCardBtn.addEventListener('click', prevCard);
   closeGameBtn.addEventListener('click', closeGame);
   document.getElementById('flashcardScene').addEventListener('click', flipCard);
+  shuffleBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleShuffle();
+  });
 
   closeModalBtn.addEventListener('click', closeDatasetModal);
   datasetModal.addEventListener('click', (e) => {
     if (e.target === datasetModal) closeDatasetModal();
   });
 
-  // -------- TTS EVENTS --------
-  // Tombol Baca
+  // TTS
   ttsSpeakBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     const text = getCurrentVisibleText();
     if (text) speak(text);
   });
 
-  // Tombol Auto
   ttsAutoBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     ttsSettings.auto = !ttsSettings.auto;
@@ -1536,19 +1812,17 @@
     if (!ttsSettings.auto) stopSpeaking();
   });
 
-  // Pilihan kecepatan
   ttsRateSelect.addEventListener('change', (e) => {
     ttsSettings.rate = parseFloat(e.target.value) || 1;
     saveTtsSettings(ttsSettings);
   });
 
-  // Pilihan voice
   ttsVoiceSelect.addEventListener('change', (e) => {
     ttsSettings.voiceName = e.target.value;
     saveTtsSettings(ttsSettings);
   });
 
-  // Keyboard shortcuts
+  // Keyboard
   document.addEventListener('keydown', (e) => {
     if (datasetModal.classList.contains('active') && e.code === 'Escape') {
       closeDatasetModal();
@@ -1574,7 +1848,6 @@
     resetForm();
     renderPustaka();
 
-    // ---- TTS init ----
     if (!ttsSupported) {
       ttsWarning.classList.add('show');
       ttsSpeakBtn.disabled = true;
@@ -1582,21 +1855,17 @@
       ttsRateSelect.disabled = true;
       ttsVoiceSelect.disabled = true;
     } else {
-      // Terapkan settings tersimpan
       ttsRateSelect.value = String(ttsSettings.rate || 1);
       ttsAutoBtn.classList.toggle('active', !!ttsSettings.auto);
       ttsAutoBtn.textContent = ttsSettings.auto ? '🔊 Auto ON' : '🔈 Auto';
 
-      // Load voices (async di beberapa browser)
       loadVoices();
       if (typeof speechSynthesis.onvoiceschanged !== 'undefined') {
         speechSynthesis.onvoiceschanged = loadVoices;
       }
-      // Fallback: coba sekali lagi setelah 500ms
       setTimeout(loadVoices, 500);
     }
 
-    // Hentikan suara kalau tab kehilangan fokus (biar tidak mengganggu)
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) stopSpeaking();
     });
