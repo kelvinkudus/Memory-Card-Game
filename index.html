@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flashcard · v0.9</title>
+  <title>Flashcard · v1.0</title>
   <style>
     * {
       box-sizing: border-box;
@@ -141,9 +141,7 @@
       flex-shrink: 0;
     }
 
-    /* ============================================
-       AUTO-LANJUT CARD DI PUSTAKA (v0.9)
-       ============================================ */
+    /* Setting card */
     .setting-card {
       background: linear-gradient(135deg, #f5f8ff, #eef3ff);
       border: 1px solid #dde5f5;
@@ -244,7 +242,6 @@
       color: #2d3a5e;
       font-family: inherit;
       transition: 0.15s;
-      -webkit-tap-highlight-color: transparent;
     }
 
     .category-chip:hover {
@@ -259,29 +256,72 @@
       box-shadow: 0 4px 10px rgba(45, 58, 94, 0.25);
     }
 
-    .category-chip.active:hover {
-      background: #1f2a4a;
+    /* Header Pustaka (dengan tombol reset urutan) */
+    .pustaka-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    .pustaka-toolbar-left {
+      font-size: 0.85rem;
+      color: #6f7d9e;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .reset-order-btn {
+      background: #f0f3fa;
+      border: 1px solid #dde5f5;
+      border-radius: 40px;
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #2d3a5e;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+      transition: 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .reset-order-btn:hover {
+      background: #e6ecfc;
+      border-color: #b0bedb;
+    }
+
+    .reset-order-btn:active {
+      transform: scale(0.94);
     }
 
     /* Kartu proyek */
     .project-grid {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
     }
 
     .project-card {
       background: #ffffff;
       border: 1px solid #d9e0f0;
       border-radius: 24px;
-      padding: 20px 24px;
+      padding: 16px 20px 16px 12px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      transition: 0.15s;
+      transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.3s cubic-bezier(0.4, 0.2, 0.2, 1);
       box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-      gap: 12px;
+      gap: 10px;
+      position: relative;
     }
 
     .project-card:hover {
@@ -289,13 +329,98 @@
       background: #fafbff;
     }
 
+    /* ============================================
+       DRAG & DROP REORDER (v1.0)
+       ============================================ */
+    .project-card.draggable {
+      /* Saat kartu di-drag */
+      box-shadow: 0 12px 30px rgba(45, 58, 94, 0.25);
+      transform: scale(1.02);
+      z-index: 100;
+      opacity: 0.95;
+      cursor: grabbing !important;
+      transition: none;
+      background: #ffffff;
+      border-color: #2d3a5e;
+    }
+
+    .project-card.dragging-active {
+      /* Sedang di-drag, cegah interaksi anak */
+      pointer-events: none;
+    }
+
+    /* Placeholder garis putus-putus */
+    .drop-indicator {
+      height: 4px;
+      background: linear-gradient(90deg, transparent, #2d3a5e, transparent);
+      border-radius: 4px;
+      margin: 4px 8px;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      position: relative;
+    }
+
+    .drop-indicator::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 10px;
+      height: 10px;
+      background: #2d3a5e;
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(45, 58, 94, 0.15);
+    }
+
+    .drop-indicator.active {
+      opacity: 1;
+    }
+
+    /* Drag handle */
+    .drag-handle {
+      flex-shrink: 0;
+      width: 34px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #a2aec9;
+      cursor: grab;
+      border-radius: 12px;
+      transition: background 0.15s, color 0.15s;
+      touch-action: none;         /* penting untuk pointer events di mobile */
+      user-select: none;
+      -webkit-user-select: none;
+      font-size: 1.15rem;
+      letter-spacing: -2px;
+      line-height: 1;
+      padding-top: 2px;
+    }
+
+    .drag-handle:hover {
+      background: #eef3ff;
+      color: #2d3a5e;
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+      background: #e0e9ff;
+    }
+
+    .drag-handle.pressed {
+      background: #2d3a5e;
+      color: white;
+    }
+
     .project-info {
       flex: 1;
-      min-width: 200px;
+      min-width: 180px;
+      padding-left: 4px;
     }
 
     .project-title {
-      font-size: 1.4rem;
+      font-size: 1.25rem;
       font-weight: 700;
       color: #1a2340;
       display: flex;
@@ -306,8 +431,8 @@
 
     .project-desc {
       color: #556184;
-      margin-top: 6px;
-      font-size: 0.98rem;
+      margin-top: 4px;
+      font-size: 0.92rem;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -318,7 +443,7 @@
       background: #eef2fc;
       border-radius: 40px;
       padding: 4px 12px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 600;
       color: #2d3a5e;
     }
@@ -328,7 +453,7 @@
 
     .project-actions {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
       align-items: center;
     }
@@ -395,7 +520,7 @@
       transform: none !important;
     }
 
-    .btn-sm { padding: 8px 16px; font-size: 0.9rem; }
+    .btn-sm { padding: 8px 14px; font-size: 0.88rem; }
 
     /* Form */
     .form-group { margin-bottom: 18px; }
@@ -918,7 +1043,6 @@
       transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
       transform-style: preserve-3d;
       cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
     }
 
     .flashcard-inner.flipped {
@@ -1225,7 +1349,6 @@
       cursor: pointer;
       transition: 0.15s;
       gap: 12px;
-      -webkit-tap-highlight-color: transparent;
     }
 
     .modal-dataset-item:hover {
@@ -1319,7 +1442,7 @@
       .game-header-controls { padding: 8px 10px; gap: 6px; }
       .tts-btn { padding: 6px 10px; font-size: 0.78rem; }
       .tts-select { font-size: 0.75rem; padding: 6px 8px; max-width: 110px; }
-      .project-actions { width: 100%; }
+      .project-actions { width: 100%; justify-content: flex-end; }
       .project-actions .btn { flex: 1; justify-content: center; }
       .card-pairs-section { padding: 16px; }
       .pair-card { padding: 14px; }
@@ -1337,6 +1460,9 @@
       .toggle-switch { width: 52px; height: 30px; }
       .toggle-switch::after { width: 24px; height: 24px; }
       .toggle-switch.active::after { transform: translateX(22px); }
+      .project-card { padding: 12px 14px 12px 8px; gap: 8px; }
+      .drag-handle { width: 30px; height: 40px; }
+      .project-title { font-size: 1.15rem; }
     }
   </style>
 </head>
@@ -1361,6 +1487,16 @@
         <div class="setting-desc">Setiap kartu yang di-flip 2 kali akan otomatis lanjut ke kartu berikutnya. Kalau sudah di akhir, kembali ke kartu pertama.</div>
       </div>
       <button class="toggle-switch" id="autoNextToggle" type="button" aria-label="Aktifkan auto-lanjut"></button>
+    </div>
+
+    <!-- Toolbar Pustaka -->
+    <div class="pustaka-toolbar">
+      <div class="pustaka-toolbar-left" id="pustakaHint">
+        💡 Tahan ikon <strong>⋮⋮</strong> untuk menggeser urutan projek
+      </div>
+      <button class="reset-order-btn" id="resetOrderBtn" type="button" title="Kembalikan ke urutan asli">
+        ↺ Reset Urutan
+      </button>
     </div>
 
     <div class="page-content">
@@ -1432,7 +1568,7 @@
     </div>
   </div>
 
-  <div class="footer-note">Flashcard v0.9 · auto-lanjut · wrap-around</div>
+  <div class="footer-note">Flashcard v1.0 · drag & drop · auto-lanjut · TTS</div>
 </div>
 
 <!-- Modal Editor Kartu Penuh -->
@@ -1574,7 +1710,8 @@
   const TTS_SETTINGS_KEY = 'flashcard_tts_settings_v1';
   const AUTO_NEXT_KEY = 'flashcard_auto_next_v1';
   const DATA_BASE = 'data/';
-  const AUTO_NEXT_DELAY = 500; // ms
+  const AUTO_NEXT_DELAY = 500;
+  const LONG_PRESS_MS = 200; // durasi long press untuk aktifkan drag di HP
 
   function loadProjects() {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -1587,13 +1724,31 @@
         description: p.description || '',
         pairs: p.pairs || [],
         createdAt: p.createdAt || Date.now(),
-        imported: p.imported || false
+        imported: p.imported || false,
+        order: typeof p.order === 'number' ? p.order : null
       }));
     } catch (e) { return []; }
   }
 
   function saveProjects(projects) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+  }
+
+  // Urutkan projects berdasarkan field 'order'
+  function getSortedProjects() {
+    // Project yang punya 'order' akan diurutkan, yang tidak punya ditaruh terakhir (fallback ke createdAt)
+    const withOrder = projects.filter(p => typeof p.order === 'number').sort((a, b) => a.order - b.order);
+    const withoutOrder = projects.filter(p => typeof p.order !== 'number').sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    return [...withOrder, ...withoutOrder];
+  }
+
+  // Normalisasi ulang order 0..n-1
+  function normalizeOrder() {
+    const sorted = getSortedProjects();
+    sorted.forEach((p, i) => {
+      const ref = projects.find(x => x.id === p.id);
+      if (ref) ref.order = i;
+    });
   }
 
   function escapeHtml(text) {
@@ -1671,6 +1826,12 @@
   // STATE
   // ======================================================================
   let projects = loadProjects();
+  // Pastikan semua projek punya order
+  if (projects.some(p => typeof p.order !== 'number')) {
+    normalizeOrder();
+    saveProjects(projects);
+  }
+
   let catalog = [];
   let datasetCache = {};
   let activeCategory = 'Semua';
@@ -1678,6 +1839,21 @@
 
   let cardEditorState = { isOpen: false, cardElement: null };
   let readerState = { isOpen: false };
+
+  // Drag state (v1.0)
+  let dragState = {
+    isDragging: false,
+    card: null,
+    handle: null,
+    startY: 0,
+    startX: 0,
+    currentY: 0,
+    placeholder: null,     // elemen indikator drop
+    longPressTimer: null,
+    pointerId: null,
+    offsetY: 0,            // jarak dari titik sentuh ke atas kartu
+    originalNext: null,    // referensi untuk restore kalau batal
+  };
 
   let activeGame = {
     projectId: null,
@@ -1688,8 +1864,8 @@
     currentIndex: 0,
     flipped: false,
     isAnimating: false,
-    flipCount: 0,        // counter flip sejak kartu muncul (v0.9)
-    autoNextTimer: null, // timer untuk auto-lanjut (v0.9)
+    flipCount: 0,
+    autoNextTimer: null,
   };
 
   // ======================================================================
@@ -1706,6 +1882,8 @@
 
   const autoNextCard = document.getElementById('autoNextCard');
   const autoNextToggle = document.getElementById('autoNextToggle');
+  const resetOrderBtn = document.getElementById('resetOrderBtn');
+  const pustakaHint = document.getElementById('pustakaHint');
 
   const buatPageTitle = document.getElementById('buatPageTitle');
   const buatPageSubhead = document.getElementById('buatPageSubhead');
@@ -1835,7 +2013,7 @@
   }
 
   // ======================================================================
-  // AUTO-NEXT SETTING UI
+  // AUTO-NEXT UI
   // ======================================================================
   function renderAutoNextUI() {
     autoNextToggle.classList.toggle('active', autoNextEnabled);
@@ -1850,7 +2028,7 @@
   }
 
   // ======================================================================
-  // RENDER PUSTAKA
+  // RENDER PUSTAKA (v1.0 dengan drag handle)
   // ======================================================================
   function renderPustaka() {
     if (!projectListContainer) return;
@@ -1866,8 +2044,10 @@
       return;
     }
 
+    const sorted = getSortedProjects();
+
     let html = '';
-    projects.forEach(project => {
+    sorted.forEach(project => {
       const totalPairs = project.pairs ? project.pairs.length : 0;
       const isEditing = project.id === editingProjectId;
       const importedBadge = project.imported
@@ -1878,6 +2058,7 @@
         : '';
       html += `
         <div class="project-card" data-project-id="${project.id}" style="${isEditing ? 'border-color:#ffd966;background:#fffdf5;' : ''}">
+          <div class="drag-handle" data-drag-handle="true" title="Tahan & geser untuk ubah urutan">⋮⋮</div>
           <div class="project-info">
             <div class="project-title">${escapeHtml(project.name)}</div>
             <div class="project-desc">
@@ -1895,6 +2076,7 @@
 
     projectListContainer.innerHTML = html;
 
+    // Pasang event listener untuk tombol aksi
     document.querySelectorAll('.play-project').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1914,15 +2096,233 @@
         deleteProject(btn.dataset.id);
       });
     });
+
+    // Pasang drag handle
+    document.querySelectorAll('.drag-handle').forEach(handle => {
+      attachDragHandle(handle);
+    });
   }
 
   function deleteProject(projectId) {
     if (!confirm('Yakin ingin menghapus projek ini?')) return;
     projects = projects.filter(p => p.id !== projectId);
+    normalizeOrder();
     saveProjects(projects);
     if (editingProjectId === projectId) cancelEdit();
     renderPustaka();
     if (activeGame.projectId === projectId) closeGame();
+  }
+
+  // ======================================================================
+  // DRAG & DROP REORDER (v1.0)
+  // ======================================================================
+  function attachDragHandle(handle) {
+    handle.addEventListener('pointerdown', onPointerDown);
+  }
+
+  function onPointerDown(e) {
+    // Hanya untuk primary button / sentuhan pertama
+    if (e.button !== undefined && e.button !== 0) return;
+    if (dragState.isDragging) return;
+
+    const handle = e.currentTarget;
+    const card = handle.closest('.project-card');
+    if (!card) return;
+
+    e.preventDefault();
+
+    dragState.pointerId = e.pointerId;
+    dragState.handle = handle;
+    dragState.card = card;
+    dragState.startY = e.clientY;
+    dragState.startX = e.clientX;
+    dragState.currentY = e.clientY;
+    dragState.originalNext = card.nextSibling;
+
+    // Rect kartu untuk hitung offset
+    const rect = card.getBoundingClientRect();
+    dragState.offsetY = e.clientY - rect.top;
+
+    // Long press timer untuk HP
+    dragState.longPressTimer = setTimeout(() => {
+      startDrag();
+    }, LONG_PRESS_MS);
+
+    // Pasang listener global untuk monitor gerakan
+    window.addEventListener('pointermove', onPointerMove, { passive: false });
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
+  }
+
+  function onPointerMove(e) {
+    if (!dragState.card) return;
+
+    // Kalau belum dragging, cek apakah user menggerakkan cukup jauh
+    if (!dragState.isDragging) {
+      const dy = Math.abs(e.clientY - dragState.startY);
+      const dx = Math.abs(e.clientX - dragState.startX);
+      // Kalau gerakan > 8px sebelum long press selesai, batalkan (kemungkinan scroll)
+      if (dy > 8 || dx > 8) {
+        cancelLongPress();
+        cleanupPointerListeners();
+      }
+      return;
+    }
+
+    e.preventDefault();
+    dragState.currentY = e.clientY;
+
+    // Update posisi kartu mengikuti jari
+    const dy = e.clientY - dragState.startY;
+    dragState.card.style.transform = `translateY(${dy}px) scale(1.02)`;
+
+    // Cek posisi drop indicator
+    updateDropIndicator(e.clientY);
+  }
+
+  function onPointerUp(e) {
+    cancelLongPress();
+
+    if (dragState.isDragging) {
+      finishDrag();
+    }
+
+    cleanupPointerListeners();
+  }
+
+  function cleanupPointerListeners() {
+    window.removeEventListener('pointermove', onPointerMove);
+    window.removeEventListener('pointerup', onPointerUp);
+    window.removeEventListener('pointercancel', onPointerUp);
+  }
+
+  function cancelLongPress() {
+    if (dragState.longPressTimer) {
+      clearTimeout(dragState.longPressTimer);
+      dragState.longPressTimer = null;
+    }
+  }
+
+  function startDrag() {
+    if (!dragState.card) return;
+    dragState.isDragging = true;
+
+    // Tambah class draggable
+    dragState.card.classList.add('draggable');
+    dragState.handle.classList.add('pressed');
+
+    // Buat placeholder / drop indicator (kalau belum ada)
+    if (!dragState.placeholder) {
+      const ph = document.createElement('div');
+      ph.className = 'drop-indicator active';
+      dragState.placeholder = ph;
+    }
+
+    // Sembunyikan scrollbar body biar tidak goyang
+    document.body.style.overflow = 'hidden';
+
+    // Haptic feedback kalau didukung
+    if (navigator.vibrate) navigator.vibrate(15);
+  }
+
+  function updateDropIndicator(clientY) {
+    if (!dragState.placeholder) return;
+
+    const cards = Array.from(projectListContainer.querySelectorAll('.project-card:not(.draggable)'));
+    let targetCard = null;
+    let insertBefore = true;
+
+    for (const card of cards) {
+      const rect = card.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if (clientY < midY) {
+        targetCard = card;
+        insertBefore = true;
+        break;
+      }
+      targetCard = card;
+      insertBefore = false;
+    }
+
+    // Pasang placeholder
+    if (targetCard) {
+      if (insertBefore) {
+        projectListContainer.insertBefore(dragState.placeholder, targetCard);
+      } else {
+        projectListContainer.insertBefore(dragState.placeholder, targetCard.nextSibling);
+      }
+    } else {
+      // Kalau tidak ada targetCard, taruh di akhir atau awal
+      if (cards.length === 0) {
+        projectListContainer.appendChild(dragState.placeholder);
+      } else {
+        projectListContainer.appendChild(dragState.placeholder);
+      }
+    }
+  }
+
+  function finishDrag() {
+    if (!dragState.card) return;
+
+    const card = dragState.card;
+
+    // Reset visual kartu
+    card.style.transform = '';
+    card.classList.remove('draggable');
+    if (dragState.handle) dragState.handle.classList.remove('pressed');
+
+    // Pindahkan kartu ke posisi placeholder
+    if (dragState.placeholder && dragState.placeholder.parentNode) {
+      dragState.placeholder.parentNode.insertBefore(card, dragState.placeholder);
+    }
+
+    // Hapus placeholder
+    if (dragState.placeholder && dragState.placeholder.parentNode) {
+      dragState.placeholder.parentNode.removeChild(dragState.placeholder);
+    }
+    dragState.placeholder = null;
+
+    // Pulihkan scroll
+    document.body.style.overflow = '';
+
+    // Simpan urutan baru
+    saveNewOrder();
+
+    // Reset state
+    dragState.isDragging = false;
+    dragState.card = null;
+    dragState.handle = null;
+    dragState.pointerId = null;
+
+    // Haptic feedback
+    if (navigator.vibrate) navigator.vibrate(10);
+  }
+
+  function saveNewOrder() {
+    const cards = projectListContainer.querySelectorAll('.project-card');
+    const newOrder = [];
+    cards.forEach((card, idx) => {
+      newOrder.push({ id: card.dataset.projectId, order: idx });
+    });
+
+    // Update array projects
+    newOrder.forEach(item => {
+      const p = projects.find(x => x.id === item.id);
+      if (p) p.order = item.order;
+    });
+
+    saveProjects(projects);
+  }
+
+  // Reset urutan ke urutan asli (berdasarkan createdAt)
+  function resetProjectOrder() {
+    if (projects.length === 0) return;
+    if (!confirm('Kembalikan urutan projek ke urutan asli (berdasarkan waktu dibuat)?')) return;
+
+    projects.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+    projects.forEach((p, i) => { p.order = i; });
+    saveProjects(projects);
+    renderPustaka();
   }
 
   // ======================================================================
@@ -2273,7 +2673,8 @@
         description: data.description || meta.description || 'Hasil impor dari Sumber Data',
         pairs: (data.pairs || []).map(p => ({ question: p.question, answer: p.answer })),
         createdAt: Date.now(),
-        imported: true
+        imported: true,
+        order: projects.length
       };
       projects.push(newProject);
       saveProjects(projects);
@@ -2395,7 +2796,8 @@
         id: 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
         name, description: desc, pairs,
         createdAt: Date.now(),
-        imported: false
+        imported: false,
+        order: projects.length
       };
       projects.push(newProject);
       saveProjects(projects);
@@ -2450,7 +2852,7 @@
   }
 
   // ======================================================================
-  // GAME LOGIC v0.9
+  // GAME LOGIC
   // ======================================================================
   function clearAutoNextTimer() {
     if (activeGame.autoNextTimer) {
@@ -2540,7 +2942,6 @@
       flashcardInner.classList.remove('flipped');
     }
 
-    // Pesan + badge auto-lanjut
     let msg = `Kartu ${activeGame.currentIndex + 1} dari ${activeGame.pairs.length}`;
     if (autoNextEnabled) {
       msg += `<span class="auto-badge">⚡ Auto-Lanjut ON</span>`;
@@ -2548,7 +2949,6 @@
     gameMessage.innerHTML = msg;
 
     prevCardBtn.disabled = activeGame.currentIndex === 0;
-    // Tombol next selalu aktif — kalau di akhir, akan wrap-around
 
     if (readerState.isOpen) updateReaderUI();
 
@@ -2563,7 +2963,7 @@
 
     activeGame.isAnimating = true;
     activeGame.flipped = !activeGame.flipped;
-    activeGame.flipCount++; // v0.9: hitung flip
+    activeGame.flipCount++;
 
     if (activeGame.flipped) {
       flashcardInner.classList.add('flipped');
@@ -2577,7 +2977,6 @@
 
     if (readerState.isOpen) updateReaderUI();
 
-    // v0.9: cek auto-lanjut
     if (autoNextEnabled && activeGame.flipCount >= 2) {
       scheduleAutoNext();
     }
@@ -2588,12 +2987,9 @@
   function scheduleAutoNext() {
     clearAutoNextTimer();
     activeGame.autoNextTimer = setTimeout(() => {
-      // Cek lagi apakah masih aktif & masih di kartu yang sama
       if (!autoNextEnabled) return;
       if (!gameOverlay.classList.contains('active')) return;
-      // Reset flipCount
       activeGame.flipCount = 0;
-      // Lanjut (dengan wrap-around)
       nextCard();
     }, AUTO_NEXT_DELAY);
   }
@@ -2602,7 +2998,7 @@
     if (activeGame.pairs.length === 0) return;
 
     clearAutoNextTimer();
-    activeGame.flipCount = 0; // v0.9: reset saat ganti kartu
+    activeGame.flipCount = 0;
 
     if (newIndex === activeGame.currentIndex) return;
 
@@ -2624,7 +3020,6 @@
   function nextCard() {
     if (activeGame.pairs.length === 0) return;
     const nextIdx = activeGame.currentIndex + 1;
-    // v0.9: wrap-around ke kartu awal
     if (nextIdx >= activeGame.pairs.length) {
       goToCard(0);
     } else {
@@ -2635,7 +3030,6 @@
   function prevCard() {
     if (activeGame.pairs.length === 0) return;
     const prevIdx = activeGame.currentIndex - 1;
-    // v0.9: wrap-around ke kartu terakhir juga (opsional, simetris)
     if (prevIdx < 0) {
       goToCard(activeGame.pairs.length - 1);
     } else {
@@ -2721,9 +3115,14 @@
     toggleAutoNext();
   });
   autoNextCard.addEventListener('click', (e) => {
-    // Klik di card (kecuali toggle) juga toggle
     if (e.target === autoNextToggle) return;
     toggleAutoNext();
+  });
+
+  // Reset urutan
+  resetOrderBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    resetProjectOrder();
   });
 
   addCardTopBtn.addEventListener('click', () => {
